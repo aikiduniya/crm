@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import Leads from "./pages/Leads.tsx";
 import Projects from "./pages/Projects.tsx";
@@ -12,30 +14,36 @@ import Operations from "./pages/Operations.tsx";
 import Financials from "./pages/Financials.tsx";
 import Documents from "./pages/Documents.tsx";
 import Reports from "./pages/Reports.tsx";
+import Users from "./pages/Users.tsx";
+import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/leads" element={<Leads />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/sales" element={<Sales />} />
-          <Route path="/operations" element={<Operations />} />
-          <Route path="/financials" element={<Financials />} />
-          <Route path="/documents" element={<Documents />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/leads" element={<ProtectedRoute module="leads"><Leads /></ProtectedRoute>} />
+            <Route path="/projects" element={<ProtectedRoute module="projects"><Projects /></ProtectedRoute>} />
+            <Route path="/clients" element={<ProtectedRoute module="clients"><Clients /></ProtectedRoute>} />
+            <Route path="/sales" element={<ProtectedRoute module="sales"><Sales /></ProtectedRoute>} />
+            <Route path="/operations" element={<ProtectedRoute module="operations"><Operations /></ProtectedRoute>} />
+            <Route path="/financials" element={<ProtectedRoute module="financials"><Financials /></ProtectedRoute>} />
+            <Route path="/documents" element={<ProtectedRoute module="documents"><Documents /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute module="reports"><Reports /></ProtectedRoute>} />
+            <Route path="/users" element={<ProtectedRoute module="users"><Users /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
