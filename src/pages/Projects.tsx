@@ -89,11 +89,11 @@ export default function Projects() {
     setSaving(true);
     try {
       if (editItem) {
-        const { error } = await supabase.from("projects").update(formData).eq("id", editItem.id);
+        const { error } = await supabase.from("projects").update(formData as any).eq("id", editItem.id);
         if (error) throw error;
         toast({ title: "Project updated" });
       } else {
-        const { error } = await supabase.from("projects").insert({ ...formData, created_by: user?.id });
+        const { error } = await supabase.from("projects").insert({ ...formData, created_by: user?.id } as any);
         if (error) throw error;
         toast({ title: "Project created" });
       }

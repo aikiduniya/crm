@@ -62,8 +62,8 @@ export default function Operations() {
   const saveEquipment = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editEq) { await supabase.from("equipment").update(formData).eq("id", editEq.id); toast({ title: "Equipment updated" }); }
-      else { await supabase.from("equipment").insert(formData); toast({ title: "Equipment added" }); }
+      if (editEq) { await supabase.from("equipment").update(formData as any).eq("id", editEq.id); toast({ title: "Equipment updated" }); }
+      else { await supabase.from("equipment").insert(formData as any); toast({ title: "Equipment added" }); }
       setEqDialogOpen(false); setEditEq(null); queryClient.invalidateQueries({ queryKey: ["equipment"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
@@ -79,8 +79,8 @@ export default function Operations() {
   const saveLabor = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editLb) { await supabase.from("labor").update(formData).eq("id", editLb.id); toast({ title: "Worker updated" }); }
-      else { await supabase.from("labor").insert(formData); toast({ title: "Worker added" }); }
+      if (editLb) { await supabase.from("labor").update(formData as any).eq("id", editLb.id); toast({ title: "Worker updated" }); }
+      else { await supabase.from("labor").insert(formData as any); toast({ title: "Worker added" }); }
       setLbDialogOpen(false); setEditLb(null); queryClient.invalidateQueries({ queryKey: ["labor"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);

@@ -45,8 +45,8 @@ export default function Financials() {
   const handleSave = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editItem) { const { error } = await supabase.from("invoices").update(formData).eq("id", editItem.id); if (error) throw error; toast({ title: "Invoice updated" }); }
-      else { const { error } = await supabase.from("invoices").insert({ ...formData, created_by: user?.id }); if (error) throw error; toast({ title: "Invoice created" }); }
+      if (editItem) { const { error } = await supabase.from("invoices").update(formData as any).eq("id", editItem.id); if (error) throw error; toast({ title: "Invoice updated" }); }
+      else { const { error } = await supabase.from("invoices").insert({ ...formData, created_by: user?.id } as any); if (error) throw error; toast({ title: "Invoice created" }); }
       setDialogOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["invoices"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);

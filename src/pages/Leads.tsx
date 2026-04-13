@@ -70,11 +70,11 @@ export default function Leads() {
     setSaving(true);
     try {
       if (editItem) {
-        const { error } = await supabase.from("leads").update(formData).eq("id", editItem.id);
+        const { error } = await supabase.from("leads").update(formData as any).eq("id", editItem.id);
         if (error) throw error;
         toast({ title: "Lead updated" });
       } else {
-        const { error } = await supabase.from("leads").insert({ ...formData, created_by: user?.id });
+        const { error } = await supabase.from("leads").insert({ ...formData, created_by: user?.id } as any);
         if (error) throw error;
         toast({ title: "Lead created" });
       }

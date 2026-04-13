@@ -47,8 +47,8 @@ export default function Documents() {
   const handleSave = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editItem) { const { error } = await supabase.from("documents").update(formData).eq("id", editItem.id); if (error) throw error; toast({ title: "Document updated" }); }
-      else { const { error } = await supabase.from("documents").insert({ ...formData, uploaded_by: user?.id }); if (error) throw error; toast({ title: "Document created" }); }
+      if (editItem) { const { error } = await supabase.from("documents").update(formData as any).eq("id", editItem.id); if (error) throw error; toast({ title: "Document updated" }); }
+      else { const { error } = await supabase.from("documents").insert({ ...formData, uploaded_by: user?.id } as any); if (error) throw error; toast({ title: "Document created" }); }
       setDialogOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["documents"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);

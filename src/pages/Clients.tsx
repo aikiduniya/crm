@@ -45,8 +45,8 @@ export default function Clients() {
   const handleSave = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editItem) { const { error } = await supabase.from("clients").update(formData).eq("id", editItem.id); if (error) throw error; toast({ title: "Client updated" }); }
-      else { const { error } = await supabase.from("clients").insert({ ...formData, created_by: user?.id }); if (error) throw error; toast({ title: "Client created" }); }
+      if (editItem) { const { error } = await supabase.from("clients").update(formData as any).eq("id", editItem.id); if (error) throw error; toast({ title: "Client updated" }); }
+      else { const { error } = await supabase.from("clients").insert({ ...formData, created_by: user?.id } as any); if (error) throw error; toast({ title: "Client created" }); }
       setDialogOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["clients"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
