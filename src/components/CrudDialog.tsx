@@ -38,7 +38,17 @@ export function CrudDialog({ open, onOpenChange, title, fields, initialData, onS
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
+    // Clean up empty strings: convert to null for date/number fields
+    const cleaned: Record<string, any> = {};
+    fields.forEach(f => {
+      const val = formData[f.name];
+      if ((f.type === "date" || f.type === "number") && (val === "" || val === undefined)) {
+        cleaned[f.name] = null;
+      } else {
+        cleaned[f.name] = val === "" ? null : val;
+      }
+    });
+    await onSubmit(cleaned);
   };
 
   return (
