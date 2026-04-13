@@ -1,53 +1,36 @@
 import {
-  LayoutDashboard,
-  Users,
-  FolderKanban,
-  UserCircle,
-  TrendingUp,
-  Wrench,
-  DollarSign,
-  FileText,
-  BarChart3,
-  HardHat,
-  LogOut,
-  Settings,
-  Bell,
+  LayoutDashboard, Users, FolderKanban, UserCircle, TrendingUp,
+  Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-  SidebarHeader,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  SidebarFooter, SidebarHeader, useSidebar,
 } from "@/components/ui/sidebar";
 
 const mainItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Leads", url: "/leads", icon: Users },
-  { title: "Projects", url: "/projects", icon: FolderKanban },
-  { title: "Clients", url: "/clients", icon: UserCircle },
-  { title: "Sales Pipeline", url: "/sales", icon: TrendingUp },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" as const },
+  { title: "Leads", url: "/leads", icon: Users, module: "leads" as const },
+  { title: "Projects", url: "/projects", icon: FolderKanban, module: "projects" as const },
+  { title: "Clients", url: "/clients", icon: UserCircle, module: "clients" as const },
+  { title: "Sales Pipeline", url: "/sales", icon: TrendingUp, module: "sales" as const },
 ];
 
 const operationsItems = [
-  { title: "Operations", url: "/operations", icon: Wrench },
-  { title: "Financials", url: "/financials", icon: DollarSign },
-  { title: "Documents", url: "/documents", icon: FileText },
-  { title: "Reports", url: "/reports", icon: BarChart3 },
+  { title: "Operations", url: "/operations", icon: Wrench, module: "operations" as const },
+  { title: "Financials", url: "/financials", icon: DollarSign, module: "financials" as const },
+  { title: "Documents", url: "/documents", icon: FileText, module: "documents" as const },
+  { title: "Reports", url: "/reports", icon: BarChart3, module: "reports" as const },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { canAccessModule } = usePermissions();
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
@@ -69,20 +52,13 @@ export function AppSidebar() {
 
       <SidebarContent className="px-2 py-3">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted text-[11px] uppercase tracking-wider font-semibold mb-1">
-            Main
-          </SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-muted text-[11px] uppercase tracking-wider font-semibold mb-1">Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {mainItems.filter(item => canAccessModule(item.module)).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/"}
-                      className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
+                    <NavLink to={item.url} end={item.url === "/"} className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
                       <item.icon className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -94,19 +70,13 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted text-[11px] uppercase tracking-wider font-semibold mb-1">
-            Operations
-          </SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-muted text-[11px] uppercase tracking-wider font-semibold mb-1">Operations</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {operationsItems.map((item) => (
+              {operationsItems.filter(item => canAccessModule(item.module)).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink
-                      to={item.url}
-                      className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
+                    <NavLink to={item.url} className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
                       <item.icon className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -116,6 +86,24 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {canAccessModule("users") && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-muted text-[11px] uppercase tracking-wider font-semibold mb-1">Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/users")}>
+                    <NavLink to="/users" className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
+                      <Shield className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>Users</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border px-2 py-3">

@@ -1,9 +1,27 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+const roleLabels: Record<string, string> = {
+  admin: "Admin",
+  hr: "HR",
+  project_manager: "PM",
+  sales: "Sales",
+  finance: "Finance",
+  operations: "Ops",
+};
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { profile, role, signOut } = useAuth();
+
+  const initials = profile?.full_name
+    ? profile.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -14,10 +32,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger />
               <div className="relative hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search projects, clients..."
-                  className="pl-9 w-64 h-9 bg-muted border-none text-sm"
-                />
+                <Input placeholder="Search projects, clients..." className="pl-9 w-64 h-9 bg-muted border-none text-sm" />
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -27,13 +42,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </button>
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center text-xs font-semibold text-primary-foreground">
-                  JD
+                  {initials}
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium leading-none">John Doe</p>
-                  <p className="text-xs text-muted-foreground">Admin</p>
+                  <p className="text-sm font-medium leading-none">{profile?.full_name || "User"}</p>
+                  <p className="text-xs text-muted-foreground">{role ? roleLabels[role] || role : ""}</p>
                 </div>
               </div>
+              <Button variant="ghost" size="sm" onClick={signOut} title="Sign out">
+                <LogOut className="h-4 w-4 text-muted-foreground" />
+              </Button>
             </div>
           </header>
           <main className="flex-1 p-4 md:p-6 overflow-auto">{children}</main>
