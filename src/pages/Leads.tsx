@@ -1,63 +1,136 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { DataTable, StatusBadge, type Column } from "@/components/DataTable";
-import { Users, UserPlus, Target, TrendingUp, Mail, Phone, Calendar } from "lucide-react";
+import { Users, UserPlus, Target, TrendingUp, Mail, Phone, Calendar, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
+import { CrudDialog, type FieldConfig } from "@/components/CrudDialog";
+import { DeleteDialog } from "@/components/DeleteDialog";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
-interface Lead {
-  id: number;
-  name: string;
-  company: string;
-  email: string;
-  phone: string;
-  source: string;
+type Lead = {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  email: string | null;
+  phone: string | null;
+  source: string | null;
   status: string;
-  value: string;
-  lastContact: string;
-}
+  value: number | null;
+  notes: string | null;
+  created_at: string;
+};
 
-const leads: Lead[] = [
-  { id: 1, name: "Robert Chen", company: "Pacific Developments", email: "r.chen@pacific.com", phone: "(555) 123-4567", source: "Referral", status: "Qualified", value: "$1.8M", lastContact: "2 hours ago" },
-  { id: 2, name: "Sarah Williams", company: "Urban Housing Co", email: "s.williams@urban.com", phone: "(555) 234-5678", source: "Website", status: "New", value: "$3.2M", lastContact: "1 day ago" },
-  { id: 3, name: "Michael Torres", company: "Torres & Sons", email: "m.torres@ts.com", phone: "(555) 345-6789", source: "Trade Show", status: "Proposal", value: "$950K", lastContact: "3 days ago" },
-  { id: 4, name: "Emily Park", company: "GreenBuild Inc", email: "e.park@greenbuild.com", phone: "(555) 456-7890", source: "LinkedIn", status: "Negotiation", value: "$4.5M", lastContact: "5 hours ago" },
-  { id: 5, name: "David Miller", company: "Miller Properties", email: "d.miller@mp.com", phone: "(555) 567-8901", source: "Referral", status: "New", value: "$2.1M", lastContact: "1 week ago" },
-  { id: 6, name: "Lisa Johnson", company: "Metro Realty Group", email: "l.johnson@metro.com", phone: "(555) 678-9012", source: "Website", status: "Qualified", value: "$1.5M", lastContact: "2 days ago" },
-];
-
-const columns: Column<Lead>[] = [
-  { header: "Name", accessor: (r) => (
-    <div>
-      <p className="font-medium">{r.name}</p>
-      <p className="text-xs text-muted-foreground">{r.company}</p>
-    </div>
-  )},
-  { header: "Contact", accessor: (r) => (
-    <div className="space-y-1">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Mail className="h-3 w-3" />{r.email}</div>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{r.phone}</div>
-    </div>
-  )},
-  { header: "Source", accessor: "source" },
-  { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
-  { header: "Est. Value", accessor: "value", className: "font-medium" },
-  { header: "Last Contact", accessor: (r) => (
-    <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Calendar className="h-3 w-3" />{r.lastContact}</div>
-  )},
-];
-
-const conversionStages = [
-  { stage: "Leads Generated", count: 124, percent: 100 },
-  { stage: "Qualified", count: 67, percent: 54 },
-  { stage: "Proposal Sent", count: 34, percent: 27 },
-  { stage: "Negotiation", count: 18, percent: 15 },
-  { stage: "Won", count: 12, percent: 10 },
+const leadFields: FieldConfig[] = [
+  { name: "company_name", label: "Company Name", type: "text", required: true },
+  { name: "contact_name", label: "Contact Name", type: "text", required: true },
+  { name: "email", label: "Email", type: "email" },
+  { name: "phone", label: "Phone", type: "text" },
+  { name: "source", label: "Source", type: "select", options: [
+    { label: "Website", value: "Website" }, { label: "Referral", value: "Referral" },
+    { label: "Trade Show", value: "Trade Show" }, { label: "LinkedIn", value: "LinkedIn" },
+    { label: "Direct", value: "Direct" },
+  ]},
+  { name: "status", label: "Status", type: "select", options: [
+    { label: "New", value: "New" }, { label: "Qualified", value: "Qualified" },
+    { label: "Proposal", value: "Proposal" }, { label: "Negotiation", value: "Negotiation" },
+    { label: "Won", value: "Won" }, { label: "Lost", value: "Lost" },
+  ]},
+  { name: "value", label: "Estimated Value ($)", type: "number" },
+  { name: "notes", label: "Notes", type: "textarea" },
 ];
 
 export default function Leads() {
+  const { user } = useAuth();
+  const { can } = usePermissions();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [editItem, setEditItem] = useState<Lead | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const { data: leads = [], isLoading } = useQuery({
+    queryKey: ["leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Lead[];
+    },
+  });
+
+  const handleSave = async (formData: Record<string, any>) => {
+    setSaving(true);
+    try {
+      if (editItem) {
+        const { error } = await supabase.from("leads").update(formData).eq("id", editItem.id);
+        if (error) throw error;
+        toast({ title: "Lead updated" });
+      } else {
+        const { error } = await supabase.from("leads").insert({ ...formData, created_by: user?.id });
+        if (error) throw error;
+        toast({ title: "Lead created" });
+      }
+      setDialogOpen(false);
+      setEditItem(null);
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async () => {
+    if (!editItem) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("leads").delete().eq("id", editItem.id);
+      if (error) throw error;
+      toast({ title: "Lead deleted" });
+      setDeleteOpen(false);
+      setEditItem(null);
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+    setSaving(false);
+  };
+
+  const columns: Column<Lead>[] = [
+    { header: "Name", accessor: (r) => (
+      <div><p className="font-medium">{r.contact_name}</p><p className="text-xs text-muted-foreground">{r.company_name}</p></div>
+    )},
+    { header: "Contact", accessor: (r) => (
+      <div className="space-y-1">
+        {r.email && <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Mail className="h-3 w-3" />{r.email}</div>}
+        {r.phone && <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{r.phone}</div>}
+      </div>
+    )},
+    { header: "Source", accessor: (r) => <span>{r.source || "—"}</span> },
+    { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
+    { header: "Value", accessor: (r) => <span className="font-medium">{r.value ? `$${r.value.toLocaleString()}` : "—"}</span> },
+    ...(can("leads", "edit") ? [{ header: "Actions", accessor: (r: Lead) => (
+      <div className="flex gap-1">
+        <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setEditItem(r); setDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
+        {can("leads", "delete") && <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setEditItem(r); setDeleteOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+      </div>
+    ), className: "w-24" } as Column<Lead>] : []),
+  ];
+
+  const stats = {
+    total: leads.length,
+    qualified: leads.filter(l => l.status === "Qualified").length,
+    won: leads.filter(l => l.status === "Won").length,
+    totalValue: leads.reduce((s, l) => s + (l.value || 0), 0),
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -66,58 +139,40 @@ export default function Leads() {
             <h2 className="text-2xl font-bold tracking-tight">Lead Management</h2>
             <p className="text-muted-foreground text-sm mt-1">Track and manage your construction leads</p>
           </div>
-          <Button className="gradient-primary"><UserPlus className="h-4 w-4 mr-2" />Add Lead</Button>
+          {can("leads", "create") && (
+            <Button className="gradient-primary" onClick={() => { setEditItem(null); setDialogOpen(true); }}>
+              <UserPlus className="h-4 w-4 mr-2" />Add Lead
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total Leads" value="124" change="+18 this month" changeType="positive" icon={Users} />
-          <StatCard title="Qualified Leads" value="67" change="54% qualification rate" changeType="positive" icon={Target} />
-          <StatCard title="Conversion Rate" value="10.2%" change="+2.1% vs last month" changeType="positive" icon={TrendingUp} />
-          <StatCard title="Avg Deal Size" value="$2.3M" change="+$400K vs Q1" changeType="positive" icon={Target} variant="accent" />
+          <StatCard title="Total Leads" value={String(stats.total)} icon={Users} />
+          <StatCard title="Qualified" value={String(stats.qualified)} icon={Target} />
+          <StatCard title="Won" value={String(stats.won)} icon={TrendingUp} variant="success" />
+          <StatCard title="Total Value" value={`$${(stats.totalValue / 1000).toFixed(0)}K`} icon={Target} variant="accent" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="all">
-              <div className="flex items-center justify-between mb-4">
-                <TabsList>
-                  <TabsTrigger value="all">All Leads</TabsTrigger>
-                  <TabsTrigger value="new">New</TabsTrigger>
-                  <TabsTrigger value="qualified">Qualified</TabsTrigger>
-                  <TabsTrigger value="proposal">Proposal</TabsTrigger>
-                </TabsList>
-              </div>
-              <TabsContent value="all">
-                <DataTable columns={columns} data={leads} />
-              </TabsContent>
-              <TabsContent value="new">
-                <DataTable columns={columns} data={leads.filter(l => l.status === "New")} />
-              </TabsContent>
-              <TabsContent value="qualified">
-                <DataTable columns={columns} data={leads.filter(l => l.status === "Qualified")} />
-              </TabsContent>
-              <TabsContent value="proposal">
-                <DataTable columns={columns} data={leads.filter(l => l.status === "Proposal")} />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          <Card className="p-5">
-            <h3 className="font-semibold mb-4">Conversion Funnel</h3>
-            <div className="space-y-3">
-              {conversionStages.map((s) => (
-                <div key={s.stage}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{s.stage}</span>
-                    <span className="font-semibold">{s.count}</span>
-                  </div>
-                  <Progress value={s.percent} className="h-2" />
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+        ) : (
+          <Tabs defaultValue="all">
+            <TabsList>
+              <TabsTrigger value="all">All ({leads.length})</TabsTrigger>
+              <TabsTrigger value="new">New</TabsTrigger>
+              <TabsTrigger value="qualified">Qualified</TabsTrigger>
+              <TabsTrigger value="won">Won</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all"><DataTable columns={columns} data={leads} /></TabsContent>
+            <TabsContent value="new"><DataTable columns={columns} data={leads.filter(l => l.status === "New")} /></TabsContent>
+            <TabsContent value="qualified"><DataTable columns={columns} data={leads.filter(l => l.status === "Qualified")} /></TabsContent>
+            <TabsContent value="won"><DataTable columns={columns} data={leads.filter(l => l.status === "Won")} /></TabsContent>
+          </Tabs>
+        )}
       </div>
+
+      <CrudDialog open={dialogOpen} onOpenChange={setDialogOpen} title={editItem ? "Edit Lead" : "Add Lead"} fields={leadFields} initialData={editItem || undefined} onSubmit={handleSave} loading={saving} />
+      <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete Lead?" onConfirm={handleDelete} loading={saving} />
     </DashboardLayout>
   );
 }
