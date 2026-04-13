@@ -143,6 +143,7 @@ export default function Projects() {
               <TabsTrigger value="all">All ({projects.length})</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
             </TabsList>
             {["all", "active", "completed"].map(tab => (
               <TabsContent key={tab} value={tab}>
@@ -154,6 +155,11 @@ export default function Projects() {
                 </div>
               </TabsContent>
             ))}
+            <TabsContent value="timeline">
+              <div className="mt-4">
+                <ProjectTimeline projects={projects} />
+              </div>
+            </TabsContent>
           </Tabs>
         )}
       </div>
