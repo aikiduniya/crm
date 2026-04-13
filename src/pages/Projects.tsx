@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProjectTimeline } from "@/components/ProjectTimeline";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -142,6 +143,7 @@ export default function Projects() {
               <TabsTrigger value="all">All ({projects.length})</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
             </TabsList>
             {["all", "active", "completed"].map(tab => (
               <TabsContent key={tab} value={tab}>
@@ -153,6 +155,11 @@ export default function Projects() {
                 </div>
               </TabsContent>
             ))}
+            <TabsContent value="timeline">
+              <div className="mt-4">
+                <ProjectTimeline projects={projects} />
+              </div>
+            </TabsContent>
           </Tabs>
         )}
       </div>

@@ -1,0 +1,1 @@
+DROP POLICY "Service insert profiles" ON public.profiles;
