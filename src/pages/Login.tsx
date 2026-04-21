@@ -10,8 +10,8 @@ import { HardHat, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@buildcrm.com");
+  const [password, setPassword] = useState("admin123");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
