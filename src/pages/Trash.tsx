@@ -57,6 +57,7 @@ export default function Trash() {
       if (error) throw error;
       toast({ title: "Restored" });
       qc.invalidateQueries({ queryKey: ["trash"] });
+      qc.invalidateQueries({ queryKey: [table] });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -72,6 +73,7 @@ export default function Trash() {
       toast({ title: "Permanently deleted" });
       setPurgeTarget(null);
       qc.invalidateQueries({ queryKey: ["trash"] });
+      qc.invalidateQueries({ queryKey: [purgeTarget.table] });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -110,8 +112,10 @@ export default function Trash() {
       variant: failed && !success ? "destructive" : "default",
     });
     setSelected((prev) => ({ ...prev, [bulkAction.table]: new Set() }));
+    const t = bulkAction.table;
     setBulkAction(null);
     qc.invalidateQueries({ queryKey: ["trash"] });
+    qc.invalidateQueries({ queryKey: [t] });
     setBusy(false);
   };
 
