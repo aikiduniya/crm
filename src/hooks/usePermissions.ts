@@ -1,61 +1,47 @@
 import { useAuth } from "@/contexts/AuthContext";
-import type { Database } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
-type AppRole = Database["public"]["Enums"]["app_role"];
-
-type Module = "dashboard" | "leads" | "projects" | "clients" | "sales" | "operations" | "financials" | "documents" | "reports" | "users";
-
-type Permission = "view" | "create" | "edit" | "delete";
-
-const permissionMatrix: Record<AppRole, Record<Module, Permission[]>> = {
-  admin: {
-    dashboard: ["view"], leads: ["view", "create", "edit", "delete"], projects: ["view", "create", "edit", "delete"],
-    clients: ["view", "create", "edit", "delete"], sales: ["view", "create", "edit", "delete"],
-    operations: ["view", "create", "edit", "delete"], financials: ["view", "create", "edit", "delete"],
-    documents: ["view", "create", "edit", "delete"], reports: ["view"], users: ["view", "create", "edit", "delete"],
-  },
-  hr: {
-    dashboard: ["view"], leads: [], projects: [], clients: [], sales: [],
-    operations: [], financials: [], documents: ["view"],
-    reports: ["view"], users: ["view"],
-  },
-  project_manager: {
-    dashboard: ["view"], leads: ["view"], projects: ["view", "create", "edit", "delete"],
-    clients: ["view"], sales: [], operations: ["view"],
-    financials: ["view"], documents: ["view", "create", "edit", "delete"],
-    reports: ["view"], users: [],
-  },
-  sales: {
-    dashboard: ["view"], leads: ["view", "create", "edit", "delete"], projects: ["view"],
-    clients: ["view", "create", "edit", "delete"], sales: ["view", "create", "edit", "delete"],
-    operations: [], financials: ["view"], documents: ["view"],
-    reports: ["view"], users: [],
-  },
-  finance: {
-    dashboard: ["view"], leads: [], projects: ["view"],
-    clients: ["view"], sales: ["view"],
-    operations: [], financials: ["view", "create", "edit", "delete"],
-    documents: ["view"], reports: ["view"], users: [],
-  },
-  operations: {
-    dashboard: ["view"], leads: [], projects: ["view"],
-    clients: [], sales: [],
-    operations: ["view", "create", "edit", "delete"], financials: [],
-    documents: ["view"], reports: ["view"], users: [],
-  },
-};
+export type Module = "dashboard" | "leads" | "projects" | "clients" | "sales" | "operations" | "financials" | "documents" | "reports" | "users";
+export type Permission = "view" | "create" | "edit" | "delete";
 
 export function usePermissions() {
   const { role } = useAuth();
 
+  const { data: permissions = [] } = useQuery({
+    queryKey: ["role_permissions", role],
+    enabled: !!role,
+    staleTime: 60_000,
+    queryFn: async () => {
+      if (!role) return [];
+      const { data: roleRow } = await supabase
+        .from("custom_roles")
+        .select("id")
+        .eq("base_role", role)
+        .maybeSingle();
+      if (!roleRow) return [];
+      const { data } = await supabase
+        .from("role_permissions")
+        .select("module, can_view, can_create, can_edit, can_delete")
+        .eq("role_id", roleRow.id);
+      return data ?? [];
+    },
+  });
+
   const can = (module: Module, permission: Permission): boolean => {
     if (!role) return false;
-    return permissionMatrix[role]?.[module]?.includes(permission) ?? false;
+    const row = permissions.find((p) => p.module === module);
+    if (!row) return false;
+    return permission === "view" ? row.can_view
+      : permission === "create" ? row.can_create
+      : permission === "edit" ? row.can_edit
+      : row.can_delete;
   };
 
   const canAccessModule = (module: Module): boolean => {
     if (!role) return false;
-    return (permissionMatrix[role]?.[module]?.length ?? 0) > 0;
+    const row = permissions.find((p) => p.module === module);
+    return !!row && (row.can_view || row.can_create || row.can_edit || row.can_delete);
   };
 
   const canManage = (module: Module): boolean => can(module, "create") || can(module, "edit") || can(module, "delete");
