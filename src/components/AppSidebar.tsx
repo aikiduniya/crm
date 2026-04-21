@@ -3,7 +3,6 @@ import {
   Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity, KeyRound,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
