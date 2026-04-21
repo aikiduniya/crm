@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, FolderKanban, UserCircle, TrendingUp,
-  Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity,
+  Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity, KeyRound,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -108,6 +108,16 @@ export function AppSidebar() {
                       <NavLink to="/activity" className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
                         <Activity className="h-4 w-4 shrink-0" />
                         {!collapsed && <span>Activity Log</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+                {role === "admin" && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/roles")}>
+                      <NavLink to="/roles" className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
+                        <KeyRound className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span>Roles & Permissions</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
