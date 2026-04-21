@@ -99,8 +99,7 @@ export default function Documents() {
   const handleDelete = async () => {
     if (!editItem) return; setSaving(true);
     try {
-      if (editItem.file_url) await supabase.storage.from("documents").remove([editItem.file_url]);
-      const { error } = await supabase.from("documents").delete().eq("id", editItem.id);
+      const { error } = await supabase.from("documents").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id }).eq("id", editItem.id);
       if (error) throw error;
       log("delete", "documents", { id: editItem.id, label: editItem.name });
       toast({ title: "Document deleted" });
