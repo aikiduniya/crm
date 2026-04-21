@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash2, RotateCcw, AlertTriangle } from "lucide-react";
 import { useState } from "react";
@@ -29,6 +30,8 @@ export default function Trash() {
   const qc = useQueryClient();
   const [purgeTarget, setPurgeTarget] = useState<{ table: string; id: string; label: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selected, setSelected] = useState<Record<string, Set<string>>>({});
+  const [bulkAction, setBulkAction] = useState<{ table: string; ids: string[]; mode: "restore" | "purge" } | null>(null);
 
   if (role && role !== "admin") return <Navigate to="/" replace />;
 
@@ -75,6 +78,43 @@ export default function Trash() {
     setBusy(false);
   };
 
+  const toggleRow = (table: string, id: string) => {
+    setSelected((prev) => {
+      const set = new Set(prev[table] || []);
+      if (set.has(id)) set.delete(id); else set.add(id);
+      return { ...prev, [table]: set };
+    });
+  };
+
+  const toggleAll = (table: string, ids: string[]) => {
+    setSelected((prev) => {
+      const current = prev[table] || new Set<string>();
+      const allSelected = ids.length > 0 && ids.every((id) => current.has(id));
+      return { ...prev, [table]: allSelected ? new Set() : new Set(ids) };
+    });
+  };
+
+  const runBulk = async () => {
+    if (!bulkAction) return;
+    setBusy(true);
+    const rpc = bulkAction.mode === "restore" ? "restore_record" : "purge_record";
+    let success = 0;
+    let failed = 0;
+    for (const id of bulkAction.ids) {
+      const { error } = await supabase.rpc(rpc as any, { _table: bulkAction.table, _id: id });
+      if (error) failed++; else success++;
+    }
+    toast({
+      title: bulkAction.mode === "restore" ? "Bulk restore complete" : "Bulk delete complete",
+      description: `${success} succeeded${failed ? `, ${failed} failed` : ""}.`,
+      variant: failed && !success ? "destructive" : "default",
+    });
+    setSelected((prev) => ({ ...prev, [bulkAction.table]: new Set() }));
+    setBulkAction(null);
+    qc.invalidateQueries({ queryKey: ["trash"] });
+    setBusy(false);
+  };
+
   const totalCount = Object.values(items).reduce((s, arr) => s + arr.length, 0);
 
   return (
@@ -105,15 +145,51 @@ export default function Trash() {
             {MODULES.map((m) => (
               <TabsContent key={m.key} value={m.key} className="mt-4">
                 <Card>
-                  <CardHeader><CardTitle className="text-base">Deleted {m.label}</CardTitle></CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+                    <CardTitle className="text-base">Deleted {m.label}</CardTitle>
+                    {(selected[m.key]?.size || 0) > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{selected[m.key].size} selected</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => setBulkAction({ table: m.key, ids: Array.from(selected[m.key]), mode: "restore" })}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Restore selected
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => setBulkAction({ table: m.key, ids: Array.from(selected[m.key]), mode: "purge" })}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-1.5" />Delete selected
+                        </Button>
+                      </div>
+                    )}
+                  </CardHeader>
                   <CardContent>
                     {items[m.key]?.length ? (
                       <div className="space-y-2">
+                        <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground border-b">
+                          <Checkbox
+                            checked={items[m.key].length > 0 && items[m.key].every((r: any) => selected[m.key]?.has(r.id))}
+                            onCheckedChange={() => toggleAll(m.key, items[m.key].map((r: any) => r.id))}
+                          />
+                          <span>Select all</span>
+                        </div>
                         {items[m.key].map((row: any) => (
                           <div key={row.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/40 transition">
-                            <div className="min-w-0">
-                              <p className="font-medium text-sm truncate">{row[m.labelField] || "(unnamed)"}</p>
-                              <p className="text-xs text-muted-foreground">Deleted {new Date(row.deleted_at).toLocaleString()}</p>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <Checkbox
+                                checked={selected[m.key]?.has(row.id) || false}
+                                onCheckedChange={() => toggleRow(m.key, row.id)}
+                              />
+                              <div className="min-w-0">
+                                <p className="font-medium text-sm truncate">{row[m.labelField] || "(unnamed)"}</p>
+                                <p className="text-xs text-muted-foreground">Deleted {new Date(row.deleted_at).toLocaleString()}</p>
+                              </div>
                             </div>
                             <div className="flex gap-2 shrink-0">
                               <Button variant="outline" size="sm" disabled={busy} onClick={() => handleRestore(m.key, row.id)}>
@@ -146,6 +222,19 @@ export default function Trash() {
         title="Permanently delete?"
         description={`"${purgeTarget?.label}" will be permanently removed. This action cannot be undone.`}
         onConfirm={handlePurge}
+        loading={busy}
+      />
+
+      <DeleteDialog
+        open={!!bulkAction}
+        onOpenChange={(o) => !o && setBulkAction(null)}
+        title={bulkAction?.mode === "restore" ? "Restore selected records?" : "Permanently delete selected?"}
+        description={
+          bulkAction?.mode === "restore"
+            ? `${bulkAction?.ids.length} record(s) will be restored.`
+            : `${bulkAction?.ids.length} record(s) will be permanently removed. This action cannot be undone.`
+        }
+        onConfirm={runBulk}
         loading={busy}
       />
     </DashboardLayout>
