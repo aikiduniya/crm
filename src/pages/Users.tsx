@@ -196,7 +196,7 @@ export default function Users() {
         {isLoading ? (
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
         ) : (
-          <DataTable title="All Users" columns={columns} data={users} />
+          <DataTable title="All Users" columns={columns} data={users} searchKeys={["full_name","email"]} searchPlaceholder="Search users..." filters={[{key:"role",label:"Role",options:[{label:"Admin",value:"admin"},{label:"HR",value:"hr"},{label:"Project Manager",value:"project_manager"},{label:"Sales",value:"sales"},{label:"Finance",value:"finance"},{label:"Operations",value:"operations"}]}]} />
         )}
       </div>
 

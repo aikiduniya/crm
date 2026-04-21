@@ -98,7 +98,7 @@ export default function Clients() {
           <StatCard title="Total Value" value={`$${(clients.reduce((s, c) => s + (c.total_value || 0), 0) / 1000000).toFixed(1)}M`} icon={Star} variant="accent" />
           <StatCard title="Avg Satisfaction" value={clients.length ? (clients.reduce((s, c) => s + (c.satisfaction || 0), 0) / clients.length).toFixed(1) : "0"} icon={Star} variant="success" />
         </div>
-        {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="All Clients" columns={columns} data={clients} />}
+        {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="All Clients" columns={columns} data={clients} searchKeys={["company_name","contact_name","email","phone"]} searchPlaceholder="Search clients..." filters={[{key:"status",label:"Status",options:[{label:"Active",value:"Active"},{label:"Inactive",value:"Inactive"},{label:"Prospect",value:"Prospect"}]}]} />}
       </div>
       <CrudDialog open={dialogOpen} onOpenChange={setDialogOpen} title={editItem ? "Edit Client" : "Add Client"} fields={clientFields} initialData={editItem || undefined} onSubmit={handleSave} loading={saving} />
       <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete Client?" onConfirm={handleDelete} loading={saving} />

@@ -90,7 +90,7 @@ export default function Documents() {
           <StatCard title="In Review" value={String(documents.filter(d => d.status === "In Review").length)} icon={Upload} variant="accent" />
           <StatCard title="Draft" value={String(documents.filter(d => d.status === "Draft").length)} icon={File} />
         </div>
-        {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="All Documents" columns={columns} data={documents} />}
+        {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="All Documents" columns={columns} data={documents} searchKeys={["name","type"]} searchPlaceholder="Search documents..." filters={[{key:"status",label:"Status",options:[{label:"Draft",value:"Draft"},{label:"In Review",value:"In Review"},{label:"Approved",value:"Approved"},{label:"Rejected",value:"Rejected"}]},{key:"type",label:"Type",options:[{label:"Contract",value:"Contract"},{label:"Report",value:"Report"},{label:"Blueprint",value:"Blueprint"},{label:"Financial",value:"Financial"},{label:"Certificate",value:"Certificate"},{label:"Change Order",value:"Change Order"},{label:"Other",value:"Other"}]}]} />}
       </div>
       <CrudDialog open={dialogOpen} onOpenChange={setDialogOpen} title={editItem ? "Edit Document" : "Add Document"} fields={documentFields} initialData={editItem || undefined} onSubmit={handleSave} loading={saving} />
       <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete Document?" onConfirm={handleDelete} loading={saving} />

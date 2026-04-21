@@ -163,10 +163,10 @@ export default function Leads() {
               <TabsTrigger value="qualified">Qualified</TabsTrigger>
               <TabsTrigger value="won">Won</TabsTrigger>
             </TabsList>
-            <TabsContent value="all"><DataTable columns={columns} data={leads} /></TabsContent>
-            <TabsContent value="new"><DataTable columns={columns} data={leads.filter(l => l.status === "New")} /></TabsContent>
-            <TabsContent value="qualified"><DataTable columns={columns} data={leads.filter(l => l.status === "Qualified")} /></TabsContent>
-            <TabsContent value="won"><DataTable columns={columns} data={leads.filter(l => l.status === "Won")} /></TabsContent>
+            <TabsContent value="all"><DataTable columns={columns} data={leads} searchKeys={["company_name","contact_name","email","phone"]} searchPlaceholder="Search leads..." filters={[{key:"status",label:"Status",options:[{label:"New",value:"New"},{label:"Qualified",value:"Qualified"},{label:"Proposal",value:"Proposal"},{label:"Won",value:"Won"},{label:"Lost",value:"Lost"}]},{key:"source",label:"Source",options:[{label:"Website",value:"Website"},{label:"Referral",value:"Referral"},{label:"Cold Call",value:"Cold Call"},{label:"Event",value:"Event"}]}]} /></TabsContent>
+            <TabsContent value="new"><DataTable columns={columns} data={leads.filter(l => l.status === "New")} searchKeys={["company_name","contact_name","email"]} searchPlaceholder="Search leads..." /></TabsContent>
+            <TabsContent value="qualified"><DataTable columns={columns} data={leads.filter(l => l.status === "Qualified")} searchKeys={["company_name","contact_name","email"]} searchPlaceholder="Search leads..." /></TabsContent>
+            <TabsContent value="won"><DataTable columns={columns} data={leads.filter(l => l.status === "Won")} searchKeys={["company_name","contact_name","email"]} searchPlaceholder="Search leads..." /></TabsContent>
           </Tabs>
         )}
       </div>

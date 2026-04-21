@@ -89,7 +89,7 @@ export default function Financials() {
           <StatCard title="Overdue" value={`$${(overdue / 1000).toFixed(0)}K`} icon={FileText} />
           <StatCard title="Total Invoices" value={String(invoices.length)} icon={TrendingUp} variant="accent" />
         </div>
-        {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="Invoices" columns={columns} data={invoices} />}
+        {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="Invoices" columns={columns} data={invoices} searchKeys={["invoice_number","notes"]} searchPlaceholder="Search invoices..." filters={[{key:"status",label:"Status",options:[{label:"Draft",value:"Draft"},{label:"Pending",value:"Pending"},{label:"Paid",value:"Paid"},{label:"Overdue",value:"Overdue"}]}]} />}
       </div>
       <CrudDialog open={dialogOpen} onOpenChange={setDialogOpen} title={editItem ? "Edit Invoice" : "Create Invoice"} fields={invoiceFields} initialData={editItem || undefined} onSubmit={handleSave} loading={saving} />
       <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete Invoice?" onConfirm={handleDelete} loading={saving} />
