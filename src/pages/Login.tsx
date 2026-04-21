@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { HardHat, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import companyLogo from "@/assets/company-logo.jpeg";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
@@ -40,11 +41,9 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md p-8 space-y-6">
         <div className="flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-accent">
-            <HardHat className="h-6 w-6 text-accent-foreground" />
-          </div>
+          <img src={companyLogo} alt="City Homes Technical Services" className="h-24 w-auto object-contain" />
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight">BuildCRM</h1>
+            <h1 className="text-2xl font-bold tracking-tight">City Homes Technical Services</h1>
             <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
           </div>
         </div>

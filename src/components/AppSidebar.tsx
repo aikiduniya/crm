@@ -3,6 +3,7 @@ import {
   Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity, KeyRound, Trash2, Download,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import companyLogo from "@/assets/company-logo.jpeg";
 import { useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,13 +41,13 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-accent">
-            <HardHat className="h-5 w-5 text-accent-foreground" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white overflow-hidden shrink-0">
+            <img src={companyLogo} alt="City Homes Technical Services" className="h-full w-full object-contain" />
           </div>
           {!collapsed && (
-            <div className="animate-slide-in">
-              <h1 className="text-sm font-bold text-sidebar-primary-foreground tracking-tight">BuildCRM</h1>
-              <p className="text-[11px] text-sidebar-muted">Construction Management</p>
+            <div className="animate-slide-in min-w-0">
+              <h1 className="text-sm font-bold text-sidebar-primary-foreground tracking-tight truncate">City Homes</h1>
+              <p className="text-[11px] text-sidebar-muted truncate">Technical Services LLC</p>
             </div>
           )}
         </div>
