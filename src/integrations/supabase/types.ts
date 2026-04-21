@@ -255,6 +255,54 @@ export type Database = {
           },
         ]
       }
+      export_requests: {
+        Row: {
+          approved_until: string | null
+          created_at: string
+          export_type: string
+          id: string
+          module: string
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_note: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          approved_until?: string | null
+          created_at?: string
+          export_type?: string
+          id?: string
+          module: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_note?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          approved_until?: string | null
+          created_at?: string
+          export_type?: string
+          id?: string
+          module?: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_note?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
@@ -656,6 +704,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      has_export_approval: { Args: { _module: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
