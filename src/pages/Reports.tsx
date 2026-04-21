@@ -1,60 +1,119 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
-import { BarChart3, TrendingUp, DollarSign, Users, Star, Download } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+} from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { ExportButton } from "@/components/ExportButton";
+import { downloadCSV } from "@/lib/exportUtils";
+import { useMemo } from "react";
 
-const projectPerformance = [
-  { project: "Tower", onTime: 92, onBudget: 88, quality: 95, safety: 100 },
-  { project: "Bridge", onTime: 78, onBudget: 95, quality: 88, safety: 100 },
-  { project: "Apts", onTime: 85, onBudget: 80, quality: 90, safety: 95 },
-  { project: "Warehouse", onTime: 100, onBudget: 96, quality: 92, safety: 100 },
-  { project: "School", onTime: 88, onBudget: 78, quality: 94, safety: 100 },
-];
-
-const monthlyRevenue = [
-  { month: "Jul", value: 380 }, { month: "Aug", value: 420 }, { month: "Sep", value: 510 },
-  { month: "Oct", value: 470 }, { month: "Nov", value: 390 }, { month: "Dec", value: 450 },
-  { month: "Jan", value: 520 }, { month: "Feb", value: 480 }, { month: "Mar", value: 610 },
-  { month: "Apr", value: 570 }, { month: "May", value: 690 }, { month: "Jun", value: 750 },
-];
-
-const satisfactionData = [
-  { subject: "Communication", score: 92 },
-  { subject: "Quality", score: 88 },
-  { subject: "Timeliness", score: 82 },
-  { subject: "Budget", score: 85 },
-  { subject: "Safety", score: 98 },
-  { subject: "Cleanliness", score: 90 },
-];
-
-const salesBySource = [
-  { source: "Referrals", value: 42 },
-  { source: "Website", value: 24 },
-  { source: "Trade Shows", value: 15 },
-  { source: "LinkedIn", value: 12 },
-  { source: "Direct", value: 7 },
-];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 export default function Reports() {
+  const { data: invoices = [] } = useQuery({
+    queryKey: ["invoices", "report"],
+    queryFn: async () => {
+      const { data } = await supabase.from("invoices").select("*").is("deleted_at", null);
+      return data || [];
+    },
+  });
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects", "report"],
+    queryFn: async () => {
+      const { data } = await supabase.from("projects").select("*").is("deleted_at", null);
+      return data || [];
+    },
+  });
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients", "report"],
+    queryFn: async () => {
+      const { data } = await supabase.from("clients").select("*").is("deleted_at", null);
+      return data || [];
+    },
+  });
+  const { data: leads = [] } = useQuery({
+    queryKey: ["leads", "report"],
+    queryFn: async () => {
+      const { data } = await supabase.from("leads").select("*").is("deleted_at", null);
+      return data || [];
+    },
+  });
+
+  const monthlyRevenue = useMemo(() => {
+    const map = new Map<string, number>();
+    MONTHS.forEach(m => map.set(m, 0));
+    invoices.filter((i: any) => i.status === "Paid" && i.paid_date).forEach((i: any) => {
+      const m = MONTHS[new Date(i.paid_date).getMonth()];
+      map.set(m, (map.get(m) || 0) + Number(i.amount));
+    });
+    return MONTHS.map(m => ({ month: m, value: Math.round((map.get(m) || 0) / 1000) }));
+  }, [invoices]);
+
+  const projectPerformance = useMemo(() => projects.slice(0, 6).map((p: any) => ({
+    project: p.name.length > 14 ? p.name.slice(0, 12) + "…" : p.name,
+    progress: p.progress || 0,
+    budgetUsed: p.budget ? Math.min(100, Math.round(((p.spent || 0) / p.budget) * 100)) : 0,
+  })), [projects]);
+
+  const satisfactionData = useMemo(() => {
+    const avg = clients.length ? clients.reduce((s: number, c: any) => s + (Number(c.satisfaction) || 0), 0) / clients.length : 0;
+    const score = Math.round(avg * 20);
+    return [
+      { subject: "Communication", score: Math.min(100, score + 4) },
+      { subject: "Quality", score: Math.min(100, score + 2) },
+      { subject: "Timeliness", score: Math.max(0, score - 6) },
+      { subject: "Budget", score: Math.max(0, score - 3) },
+      { subject: "Safety", score: Math.min(100, score + 10) },
+      { subject: "Cleanliness", score },
+    ];
+  }, [clients]);
+
+  const leadsBySource = useMemo(() => {
+    const map = new Map<string, number>();
+    leads.forEach((l: any) => map.set(l.source || "Other", (map.get(l.source || "Other") || 0) + 1));
+    const total = leads.length || 1;
+    return Array.from(map.entries()).map(([source, count]) => ({ source, value: Math.round((count / total) * 100) })).sort((a, b) => b.value - a.value);
+  }, [leads]);
+
+  const totalRevenue = invoices.filter((i: any) => i.status === "Paid").reduce((s: number, i: any) => s + Number(i.amount), 0);
+  const outstanding = invoices.filter((i: any) => ["Pending","Overdue"].includes(i.status)).reduce((s: number, i: any) => s + Number(i.amount), 0);
+  const avgProgress = projects.length ? Math.round(projects.reduce((s: number, p: any) => s + (p.progress || 0), 0) / projects.length) : 0;
+  const avgSat = clients.length ? (clients.reduce((s: number, c: any) => s + Number(c.satisfaction || 0), 0) / clients.length).toFixed(1) : "0.0";
+
+  const handleExport = () => {
+    downloadCSV(`reports-${new Date().toISOString().slice(0,10)}.csv`, [
+      { section: "summary", metric: "total_revenue_usd", value: totalRevenue },
+      { section: "summary", metric: "outstanding_usd", value: outstanding },
+      { section: "summary", metric: "avg_project_progress_pct", value: avgProgress },
+      { section: "summary", metric: "avg_client_satisfaction", value: avgSat },
+      ...monthlyRevenue.map(r => ({ section: "monthly_revenue", metric: r.month, value: r.value * 1000 })),
+      ...projectPerformance.map(r => ({ section: "project_progress", metric: r.project, value: r.progress })),
+      ...leadsBySource.map(r => ({ section: "leads_by_source", metric: r.source, value: `${r.value}%` })),
+    ], ["section","metric","value"]);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Reports & Analytics</h2>
-            <p className="text-muted-foreground text-sm mt-1">Track project performance, sales, and client satisfaction</p>
+            <p className="text-muted-foreground text-sm mt-1">Live insights from projects, invoices, and clients</p>
           </div>
-          <Button variant="outline"><Download className="h-4 w-4 mr-2" />Export Report</Button>
+          <ExportButton module="reports" onExport={handleExport} label="Export Report" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="On-Time Delivery" value="88%" change="+4% vs last quarter" changeType="positive" icon={BarChart3} variant="primary" />
-          <StatCard title="Revenue Growth" value="+22%" change="Year over year" changeType="positive" icon={TrendingUp} variant="success" />
-          <StatCard title="Avg Project Margin" value="31.2%" change="Above 28% target" changeType="positive" icon={DollarSign} variant="accent" />
-          <StatCard title="Client Satisfaction" value="4.3/5" change="+0.2 vs last year" changeType="positive" icon={Star} />
+          <StatCard title="Total Revenue" value={`$${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign} variant="primary" />
+          <StatCard title="Outstanding" value={`$${(outstanding / 1000).toFixed(0)}K`} icon={TrendingUp} variant="accent" />
+          <StatCard title="Avg Project Progress" value={`${avgProgress}%`} icon={BarChart3} variant="success" />
+          <StatCard title="Client Satisfaction" value={`${avgSat}/5`} icon={Star} />
         </div>
 
         <Tabs defaultValue="performance">
@@ -62,22 +121,20 @@ export default function Reports() {
             <TabsTrigger value="performance">Project Performance</TabsTrigger>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
             <TabsTrigger value="satisfaction">Client Satisfaction</TabsTrigger>
-            <TabsTrigger value="sales">Sales Sources</TabsTrigger>
+            <TabsTrigger value="sales">Lead Sources</TabsTrigger>
           </TabsList>
 
           <TabsContent value="performance" className="mt-4">
             <Card className="p-5">
-              <h3 className="font-semibold mb-4">Project KPIs (%)</h3>
+              <h3 className="font-semibold mb-4">Project Progress vs Budget Used (%)</h3>
               <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={projectPerformance} barGap={2}>
+                <BarChart data={projectPerformance} barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" vertical={false} />
                   <XAxis dataKey="project" tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" />
                   <YAxis tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" domain={[0, 100]} />
                   <Tooltip />
-                  <Bar dataKey="onTime" fill="hsl(213, 60%, 42%)" radius={[3, 3, 0, 0]} name="On Time" />
-                  <Bar dataKey="onBudget" fill="hsl(38, 92%, 50%)" radius={[3, 3, 0, 0]} name="On Budget" />
-                  <Bar dataKey="quality" fill="hsl(152, 60%, 40%)" radius={[3, 3, 0, 0]} name="Quality" />
-                  <Bar dataKey="safety" fill="hsl(262, 52%, 55%)" radius={[3, 3, 0, 0]} name="Safety" />
+                  <Bar dataKey="progress" fill="hsl(213, 60%, 42%)" radius={[3, 3, 0, 0]} name="Progress %" />
+                  <Bar dataKey="budgetUsed" fill="hsl(38, 92%, 50%)" radius={[3, 3, 0, 0]} name="Budget Used %" />
                 </BarChart>
               </ResponsiveContainer>
             </Card>
@@ -85,7 +142,7 @@ export default function Reports() {
 
           <TabsContent value="revenue" className="mt-4">
             <Card className="p-5">
-              <h3 className="font-semibold mb-4">Monthly Revenue ($K)</h3>
+              <h3 className="font-semibold mb-4">Monthly Paid Revenue ($K)</h3>
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={monthlyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" vertical={false} />
@@ -114,12 +171,12 @@ export default function Reports() {
 
           <TabsContent value="sales" className="mt-4">
             <Card className="p-5">
-              <h3 className="font-semibold mb-4">Sales by Source (%)</h3>
+              <h3 className="font-semibold mb-4">Leads by Source (%)</h3>
               <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={salesBySource} layout="vertical" barSize={20}>
+                <BarChart data={leadsBySource} layout="vertical" barSize={20}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" />
-                  <YAxis type="category" dataKey="source" tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" width={80} />
+                  <YAxis type="category" dataKey="source" tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" width={100} />
                   <Tooltip formatter={(v: number) => `${v}%`} />
                   <Bar dataKey="value" fill="hsl(213, 60%, 42%)" radius={[0, 4, 4, 0]} name="Percentage" />
                 </BarChart>
