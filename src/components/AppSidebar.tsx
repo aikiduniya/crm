@@ -3,6 +3,7 @@ import {
   Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity, KeyRound,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -131,9 +132,11 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border px-2 py-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="hover:bg-sidebar-accent rounded-lg">
-              <Settings className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>Settings</span>}
+            <SidebarMenuButton asChild isActive={isActive("/settings")}>
+              <NavLink to="/settings" className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
+                <Settings className="h-4 w-4 shrink-0" />
+                {!collapsed && <span>Settings</span>}
+              </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
