@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type ActivityAction = "create" | "update" | "delete";
+export type ActivityAction = "create" | "update" | "delete" | "export";
 export type ActivityModule =
   | "leads" | "projects" | "clients" | "sales" | "operations"
   | "financials" | "documents" | "users";

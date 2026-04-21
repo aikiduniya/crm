@@ -39,6 +39,7 @@ export default function Documents() {
   const { toast } = useToast();
   const { log } = useActivityLogger();
   const queryClient = useQueryClient();
+  const { isAdmin, canExport, activeApproval } = useExportPermission("documents");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editItem, setEditItem] = useState<Document | null>(null);
@@ -97,8 +98,35 @@ export default function Documents() {
 
   const handleDownload = async (doc: Document) => {
     if (!doc.file_url) { toast({ title: "No file attached", variant: "destructive" }); return; }
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_url, 60);
+
+    // Re-verify approval server-side right before issuing the URL.
+    let ttlSeconds = 60;
+    if (!isAdmin) {
+      const { data: approved, error: approvalErr } = await supabase
+        .rpc("has_export_approval", { _module: "documents" });
+      if (approvalErr || !approved) {
+        toast({
+          title: "Download not allowed",
+          description: "Your approval has expired or was revoked. Please request access again.",
+          variant: "destructive",
+        });
+        queryClient.invalidateQueries({ queryKey: ["export_requests"] });
+        return;
+      }
+      // Cap TTL at remaining approval window (max 60s, min 10s).
+      if (activeApproval?.approved_until) {
+        const remaining = Math.floor(
+          (new Date(activeApproval.approved_until).getTime() - Date.now()) / 1000
+        );
+        ttlSeconds = Math.max(10, Math.min(60, remaining));
+      }
+    }
+
+    const { data, error } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(doc.file_url, ttlSeconds);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    log("export", "documents", { id: doc.id, label: doc.name, details: { kind: "download", ttl: ttlSeconds } });
     window.open(data.signedUrl, "_blank");
   };
 
