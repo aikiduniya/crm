@@ -12,6 +12,7 @@ import { CrudDialog, type FieldConfig } from "@/components/CrudDialog";
 import { DeleteDialog } from "@/components/DeleteDialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 type Deal = { id: string; title: string; client_name: string; stage: string; value: number | null; probability: number | null; expected_close: string | null };
 
@@ -33,6 +34,7 @@ export default function Sales() {
   const { user } = useAuth();
   const { can } = usePermissions();
   const { toast } = useToast();
+  const { log } = useActivityLogger();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -47,8 +49,17 @@ export default function Sales() {
   const handleSave = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editItem) { const { error } = await supabase.from("sales_deals").update(formData as any).eq("id", editItem.id); if (error) throw error; toast({ title: "Deal updated" }); }
-      else { const { error } = await supabase.from("sales_deals").insert({ ...formData, created_by: user?.id } as any); if (error) throw error; toast({ title: "Deal created" }); }
+      if (editItem) {
+        const { error } = await supabase.from("sales_deals").update(formData as any).eq("id", editItem.id);
+        if (error) throw error;
+        log("update", "sales", { id: editItem.id, label: formData.title || editItem.title });
+        toast({ title: "Deal updated" });
+      } else {
+        const { data: inserted, error } = await supabase.from("sales_deals").insert({ ...formData, created_by: user?.id } as any).select().single();
+        if (error) throw error;
+        log("create", "sales", { id: inserted?.id, label: formData.title });
+        toast({ title: "Deal created" });
+      }
       setDialogOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["sales_deals"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
@@ -56,7 +67,13 @@ export default function Sales() {
 
   const handleDelete = async () => {
     if (!editItem) return; setSaving(true);
-    try { const { error } = await supabase.from("sales_deals").delete().eq("id", editItem.id); if (error) throw error; toast({ title: "Deal deleted" }); setDeleteOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["sales_deals"] }); }
+    try {
+      const { error } = await supabase.from("sales_deals").delete().eq("id", editItem.id);
+      if (error) throw error;
+      log("delete", "sales", { id: editItem.id, label: editItem.title });
+      toast({ title: "Deal deleted" });
+      setDeleteOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["sales_deals"] });
+    }
     catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
   };
