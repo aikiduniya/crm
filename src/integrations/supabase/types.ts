@@ -615,6 +615,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_can: { Args: { _action: string; _module: string }; Returns: boolean }
     }
     Enums: {
       app_role:
