@@ -43,7 +43,7 @@ export default function Sales() {
 
   const { data: deals = [], isLoading } = useQuery({
     queryKey: ["sales_deals"],
-    queryFn: async () => { const { data, error } = await supabase.from("sales_deals").select("*").order("created_at", { ascending: false }); if (error) throw error; return data as Deal[]; },
+    queryFn: async () => { const { data, error } = await supabase.from("sales_deals").select("*").is("deleted_at", null).order("created_at", { ascending: false }); if (error) throw error; return data as Deal[]; },
   });
 
   const handleSave = async (formData: Record<string, any>) => {

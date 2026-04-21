@@ -58,8 +58,8 @@ export default function Operations() {
   const [editLb, setEditLb] = useState<Labor | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const { data: equipment = [] } = useQuery({ queryKey: ["equipment"], queryFn: async () => { const { data } = await supabase.from("equipment").select("*").order("created_at", { ascending: false }); return (data || []) as Equipment[]; } });
-  const { data: labor = [] } = useQuery({ queryKey: ["labor"], queryFn: async () => { const { data } = await supabase.from("labor").select("*").order("created_at", { ascending: false }); return (data || []) as Labor[]; } });
+  const { data: equipment = [] } = useQuery({ queryKey: ["equipment"], queryFn: async () => { const { data } = await supabase.from("equipment").select("*").is("deleted_at", null).order("created_at", { ascending: false }); return (data || []) as Equipment[]; } });
+  const { data: labor = [] } = useQuery({ queryKey: ["labor"], queryFn: async () => { const { data } = await supabase.from("labor").select("*").is("deleted_at", null).order("created_at", { ascending: false }); return (data || []) as Labor[]; } });
 
   const saveEquipment = async (formData: Record<string, any>) => {
     setSaving(true);
