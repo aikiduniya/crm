@@ -1,10 +1,11 @@
 import {
   LayoutDashboard, Users, FolderKanban, UserCircle, TrendingUp,
-  Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield,
+  Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -31,6 +32,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { canAccessModule } = usePermissions();
+  const { role } = useAuth();
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
@@ -100,6 +102,16 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                {role === "admin" && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/activity")}>
+                      <NavLink to="/activity" className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
+                        <Activity className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span>Activity Log</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
