@@ -95,7 +95,7 @@ export default function Sales() {
           <StatCard title="Win Rate" value={deals.length ? `${((wonDeals.length / deals.length) * 100).toFixed(0)}%` : "0%"} icon={Target} />
           <StatCard title="Total Deals" value={String(deals.length)} icon={TrendingUp} variant="accent" />
         </div>
-        {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="Active Deals" columns={columns} data={deals} searchKeys={["title","client_name","notes"]} searchPlaceholder="Search deals..." filters={[{key:"stage",label:"Stage",options:[{label:"Qualification",value:"Qualification"},{label:"Proposal",value:"Proposal"},{label:"Negotiation",value:"Negotiation"},{label:"Won",value:"Won"},{label:"Lost",value:"Lost"}]}]} />}
+        {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="Active Deals" columns={columns} data={deals} searchKeys={["title","client_name"]} searchPlaceholder="Search deals..." filters={[{key:"stage",label:"Stage",options:[{label:"Qualification",value:"Qualification"},{label:"Proposal",value:"Proposal"},{label:"Negotiation",value:"Negotiation"},{label:"Won",value:"Won"},{label:"Lost",value:"Lost"}]}]} />}
       </div>
       <CrudDialog open={dialogOpen} onOpenChange={setDialogOpen} title={editItem ? "Edit Deal" : "New Deal"} fields={dealFields} initialData={editItem || undefined} onSubmit={handleSave} loading={saving} />
       <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete Deal?" onConfirm={handleDelete} loading={saving} />
