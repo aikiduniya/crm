@@ -112,7 +112,7 @@ export default function Projects() {
     if (!editItem) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("projects").delete().eq("id", editItem.id);
+      const { error } = await supabase.from("projects").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id } as any).eq("id", editItem.id);
       if (error) throw error;
       log("delete", "projects", { id: editItem.id, label: editItem.name });
       toast({ title: "Project deleted" });

@@ -66,7 +66,7 @@ export default function Financials() {
   const handleDelete = async () => {
     if (!editItem) return; setSaving(true);
     try {
-      const { error } = await supabase.from("invoices").delete().eq("id", editItem.id);
+      const { error } = await supabase.from("invoices").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id } as any).eq("id", editItem.id);
       if (error) throw error;
       log("delete", "financials", { id: editItem.id, label: editItem.invoice_number });
       toast({ title: "Invoice deleted" });
