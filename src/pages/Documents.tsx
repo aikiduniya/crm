@@ -126,7 +126,7 @@ export default function Documents() {
       .from("documents")
       .createSignedUrl(doc.file_url, ttlSeconds);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-    log("download", "documents", { id: doc.id, label: doc.name, ttl: ttlSeconds });
+    log("export", "documents", { id: doc.id, label: doc.name, ttl: ttlSeconds, kind: "download" });
     window.open(data.signedUrl, "_blank");
   };
 
