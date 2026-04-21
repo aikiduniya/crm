@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { DataTable, StatusBadge, type Column } from "@/components/DataTable";
-import { FileText, Upload, FolderOpen, File, Edit, Trash2, Plus, Download } from "lucide-react";
+import { FileText, Upload, FolderOpen, File, Edit, Trash2, Plus, Download, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,11 @@ import { DeleteDialog } from "@/components/DeleteDialog";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
+import { ExportButton } from "@/components/ExportButton";
+import { useExportPermission } from "@/hooks/useExportPermission";
+import { downloadCSV } from "@/lib/exportUtils";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge as Status2 } from "@/components/DataTable";
 
 type Document = { id: string; name: string; type: string; status: string; file_size: number | null; file_url: string | null };
 
@@ -37,6 +42,7 @@ export default function Documents() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editItem, setEditItem] = useState<Document | null>(null);
+  const [viewItem, setViewItem] = useState<Document | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", type: "Other", status: "Draft" });
   const [file, setFile] = useState<File | null>(null);
@@ -120,19 +126,31 @@ export default function Documents() {
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     { header: "Actions", accessor: (r: Document) => (
       <div className="flex gap-1">
-        {r.file_url && <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); handleDownload(r); }}><Download className="h-4 w-4" /></Button>}
+        <Button variant="ghost" size="sm" title="View" onClick={e => { e.stopPropagation(); setViewItem(r); }}><Eye className="h-4 w-4" /></Button>
+        {r.file_url && <DocDownload doc={r} onDownload={() => handleDownload(r)} />}
         {can("documents", "edit") && <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setEditItem(r); setDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>}
         {can("documents", "delete") && <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setEditItem(r); setDeleteOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
       </div>
-    ), className: "w-32" },
+    ), className: "w-44" },
   ];
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div><h2 className="text-2xl font-bold tracking-tight">Document Management</h2><p className="text-muted-foreground text-sm mt-1">Store and manage project documents</p></div>
-          {can("documents", "create") && <Button className="gradient-primary" onClick={() => { setEditItem(null); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Document</Button>}
+          <div className="flex items-center gap-2">
+            <ExportButton
+              module="documents"
+              label="Export List"
+              onExport={() => downloadCSV(
+                `documents-${new Date().toISOString().slice(0,10)}.csv`,
+                documents.map(d => ({ name: d.name, type: d.type, status: d.status, size_bytes: d.file_size || 0 })),
+                ["name","type","status","size_bytes"]
+              )}
+            />
+            {can("documents", "create") && <Button className="gradient-primary" onClick={() => { setEditItem(null); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Document</Button>}
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Total Documents" value={String(documents.length)} icon={FileText} />
@@ -185,6 +203,66 @@ export default function Documents() {
       </Dialog>
 
       <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete Document?" onConfirm={handleDelete} loading={saving} />
+
+      <Dialog open={!!viewItem} onOpenChange={o => !o && setViewItem(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><FileText className="h-5 w-5" />{viewItem?.name}</DialogTitle></DialogHeader>
+          {viewItem && (
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Type</p><p className="font-medium">{viewItem.type}</p></div>
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Status</p><Status2 status={viewItem.status} /></div>
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">File Size</p><p className="font-medium">{formatSize(viewItem.file_size)}</p></div>
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">File</p><p className="font-medium">{viewItem.file_url ? "Attached" : "—"}</p></div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewItem(null)}>Close</Button>
+            {viewItem?.file_url && <DocDownload doc={viewItem} onDownload={() => handleDownload(viewItem)} buttonLabel="Download" full />}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
+  );
+}
+
+function DocDownload({ doc, onDownload, buttonLabel = "", full = false }: { doc: Document; onDownload: () => void; buttonLabel?: string; full?: boolean }) {
+  const { isAdmin, canExport, pending, requestExport } = useExportPermission("documents");
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  if (canExport || isAdmin) {
+    return full ? (
+      <Button onClick={onDownload}><Download className="h-4 w-4 mr-2" />{buttonLabel || "Download"}</Button>
+    ) : (
+      <Button variant="ghost" size="sm" title="Download" onClick={e => { e.stopPropagation(); onDownload(); }}><Download className="h-4 w-4" /></Button>
+    );
+  }
+  if (pending) {
+    return <Button variant="ghost" size="sm" disabled title="Awaiting admin approval"><Download className="h-4 w-4 opacity-40" /></Button>;
+  }
+  return (
+    <>
+      <Button variant="ghost" size="sm" title="Request download" onClick={e => { e.stopPropagation(); setOpen(true); }}>
+        <Download className="h-4 w-4 opacity-60" />
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Request download permission</DialogTitle></DialogHeader>
+          <div className="py-2 space-y-3">
+            <p className="text-sm text-muted-foreground">Downloading documents requires admin approval. Briefly explain why.</p>
+            <Input value={reason} onChange={e => setReason(e.target.value)} placeholder="Reason for download" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button disabled={!reason.trim() || submitting} onClick={async () => {
+              setSubmitting(true); await requestExport(reason.trim(), "any"); setSubmitting(false); setOpen(false); setReason("");
+            }}>{submitting ? "Submitting..." : "Submit request"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

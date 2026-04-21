@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { DataTable, StatusBadge, type Column } from "@/components/DataTable";
-import { DollarSign, CreditCard, TrendingUp, FileText, Plus, Edit, Trash2 } from "lucide-react";
+import { DollarSign, CreditCard, TrendingUp, FileText, Plus, Edit, Trash2, Eye, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,10 @@ import { DeleteDialog } from "@/components/DeleteDialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
+import { ExportButton } from "@/components/ExportButton";
+import { downloadCSV, printInvoice } from "@/lib/exportUtils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 type Invoice = { id: string; invoice_number: string; amount: number; status: string; due_date: string | null; paid_date: string | null; notes: string | null; client_id: string | null; project_id: string | null };
 
@@ -37,6 +41,7 @@ export default function Financials() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editItem, setEditItem] = useState<Invoice | null>(null);
+  const [viewItem, setViewItem] = useState<Invoice | null>(null);
   const [saving, setSaving] = useState(false);
 
   const { data: invoices = [], isLoading } = useQuery({
@@ -85,20 +90,34 @@ export default function Financials() {
     { header: "Amount", accessor: (r) => <span className="font-bold">${r.amount.toLocaleString()}</span> },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     { header: "Due", accessor: (r) => <span>{r.due_date || "—"}</span> },
-    ...(can("financials", "edit") ? [{ header: "Actions", accessor: (r: Invoice) => (
+    { header: "Actions", accessor: (r: Invoice) => (
       <div className="flex gap-1">
-        <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setEditItem(r); setDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
-        {can("financials", "delete") && <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setEditItem(r); setDeleteOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+        <Button variant="ghost" size="sm" title="View" onClick={e => { e.stopPropagation(); setViewItem(r); }}><Eye className="h-4 w-4" /></Button>
+        {can("financials", "edit") && <Button variant="ghost" size="sm" title="Edit" onClick={e => { e.stopPropagation(); setEditItem(r); setDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>}
+        {can("financials", "delete") && <Button variant="ghost" size="sm" title="Delete" onClick={e => { e.stopPropagation(); setEditItem(r); setDeleteOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
       </div>
-    ), className: "w-24" } as Column<Invoice>] : []),
+    ), className: "w-32" },
   ];
+
+  const handleExportAll = () => {
+    downloadCSV(`invoices-${new Date().toISOString().slice(0,10)}.csv`,
+      invoices.map(i => ({
+        invoice_number: i.invoice_number, amount: i.amount, status: i.status,
+        due_date: i.due_date || "", paid_date: i.paid_date || "", notes: i.notes || "",
+      })),
+      ["invoice_number","amount","status","due_date","paid_date","notes"]
+    );
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div><h2 className="text-2xl font-bold tracking-tight">Financial Management</h2><p className="text-muted-foreground text-sm mt-1">Invoicing, payments, and financial reporting</p></div>
-          {can("financials", "create") && <Button className="gradient-primary" onClick={() => { setEditItem(null); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Create Invoice</Button>}
+          <div className="flex items-center gap-2">
+            <ExportButton module="financials" onExport={handleExportAll} label="Export CSV" />
+            {can("financials", "create") && <Button className="gradient-primary" onClick={() => { setEditItem(null); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Create Invoice</Button>}
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Total Revenue" value={`$${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign} variant="primary" />
@@ -110,6 +129,45 @@ export default function Financials() {
       </div>
       <CrudDialog open={dialogOpen} onOpenChange={setDialogOpen} title={editItem ? "Edit Invoice" : "Create Invoice"} fields={invoiceFields} initialData={editItem || undefined} onSubmit={handleSave} loading={saving} />
       <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete Invoice?" onConfirm={handleDelete} loading={saving} />
+
+      <Dialog open={!!viewItem} onOpenChange={o => !o && setViewItem(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><FileText className="h-5 w-5" />{viewItem?.invoice_number}</DialogTitle></DialogHeader>
+          {viewItem && (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Amount</p>
+                  <p className="text-3xl font-bold mt-1">${viewItem.amount.toLocaleString()}</p>
+                </div>
+                <StatusBadge status={viewItem.status} />
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Due Date</p><p className="font-medium">{viewItem.due_date || "—"}</p></div>
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Paid Date</p><p className="font-medium">{viewItem.paid_date || "—"}</p></div>
+              </div>
+              {viewItem.notes && (
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Notes</p><p className="text-sm">{viewItem.notes}</p></div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewItem(null)}>Close</Button>
+            <ExportButton
+              module="financials"
+              label="Download / Print"
+              onExport={() => viewItem && printInvoice({
+                invoice_number: viewItem.invoice_number,
+                amount: viewItem.amount,
+                status: viewItem.status,
+                due_date: viewItem.due_date,
+                paid_date: viewItem.paid_date,
+                notes: viewItem.notes,
+              })}
+            />
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
