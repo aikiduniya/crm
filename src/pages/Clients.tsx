@@ -12,6 +12,7 @@ import { CrudDialog, type FieldConfig } from "@/components/CrudDialog";
 import { DeleteDialog } from "@/components/DeleteDialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 type Client = { id: string; company_name: string; contact_name: string; email: string | null; phone: string | null; status: string; total_value: number | null; total_projects: number | null; satisfaction: number | null };
 
@@ -31,6 +32,7 @@ export default function Clients() {
   const { user } = useAuth();
   const { can } = usePermissions();
   const { toast } = useToast();
+  const { log } = useActivityLogger();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -45,8 +47,17 @@ export default function Clients() {
   const handleSave = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editItem) { const { error } = await supabase.from("clients").update(formData as any).eq("id", editItem.id); if (error) throw error; toast({ title: "Client updated" }); }
-      else { const { error } = await supabase.from("clients").insert({ ...formData, created_by: user?.id } as any); if (error) throw error; toast({ title: "Client created" }); }
+      if (editItem) {
+        const { error } = await supabase.from("clients").update(formData as any).eq("id", editItem.id);
+        if (error) throw error;
+        log("update", "clients", { id: editItem.id, label: formData.company_name || editItem.company_name });
+        toast({ title: "Client updated" });
+      } else {
+        const { data: inserted, error } = await supabase.from("clients").insert({ ...formData, created_by: user?.id } as any).select().single();
+        if (error) throw error;
+        log("create", "clients", { id: inserted?.id, label: formData.company_name });
+        toast({ title: "Client created" });
+      }
       setDialogOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["clients"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
@@ -54,7 +65,13 @@ export default function Clients() {
 
   const handleDelete = async () => {
     if (!editItem) return; setSaving(true);
-    try { const { error } = await supabase.from("clients").delete().eq("id", editItem.id); if (error) throw error; toast({ title: "Client deleted" }); setDeleteOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["clients"] }); }
+    try {
+      const { error } = await supabase.from("clients").delete().eq("id", editItem.id);
+      if (error) throw error;
+      log("delete", "clients", { id: editItem.id, label: editItem.company_name });
+      toast({ title: "Client deleted" });
+      setDeleteOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["clients"] });
+    }
     catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
   };

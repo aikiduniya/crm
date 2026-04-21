@@ -12,6 +12,7 @@ import { CrudDialog, type FieldConfig } from "@/components/CrudDialog";
 import { DeleteDialog } from "@/components/DeleteDialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 type Equipment = { id: string; name: string; type: string; status: string; condition: string | null; daily_rate: number | null; last_maintenance: string | null };
 type Labor = { id: string; worker_name: string; role: string; status: string; hourly_rate: number | null; hours_logged: number | null; phone: string | null };
@@ -47,6 +48,7 @@ const laborFields: FieldConfig[] = [
 export default function Operations() {
   const { can } = usePermissions();
   const { toast } = useToast();
+  const { log } = useActivityLogger();
   const queryClient = useQueryClient();
   const [eqDialogOpen, setEqDialogOpen] = useState(false);
   const [eqDeleteOpen, setEqDeleteOpen] = useState(false);
@@ -62,8 +64,15 @@ export default function Operations() {
   const saveEquipment = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editEq) { await supabase.from("equipment").update(formData as any).eq("id", editEq.id); toast({ title: "Equipment updated" }); }
-      else { await supabase.from("equipment").insert(formData as any); toast({ title: "Equipment added" }); }
+      if (editEq) {
+        await supabase.from("equipment").update(formData as any).eq("id", editEq.id);
+        log("update", "operations", { id: editEq.id, label: `Equipment: ${formData.name || editEq.name}` });
+        toast({ title: "Equipment updated" });
+      } else {
+        const { data: inserted } = await supabase.from("equipment").insert(formData as any).select().single();
+        log("create", "operations", { id: inserted?.id, label: `Equipment: ${formData.name}` });
+        toast({ title: "Equipment added" });
+      }
       setEqDialogOpen(false); setEditEq(null); queryClient.invalidateQueries({ queryKey: ["equipment"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
@@ -71,7 +80,12 @@ export default function Operations() {
 
   const deleteEquipment = async () => {
     if (!editEq) return; setSaving(true);
-    try { await supabase.from("equipment").delete().eq("id", editEq.id); toast({ title: "Equipment deleted" }); setEqDeleteOpen(false); setEditEq(null); queryClient.invalidateQueries({ queryKey: ["equipment"] }); }
+    try {
+      await supabase.from("equipment").delete().eq("id", editEq.id);
+      log("delete", "operations", { id: editEq.id, label: `Equipment: ${editEq.name}` });
+      toast({ title: "Equipment deleted" });
+      setEqDeleteOpen(false); setEditEq(null); queryClient.invalidateQueries({ queryKey: ["equipment"] });
+    }
     catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
   };
@@ -79,8 +93,15 @@ export default function Operations() {
   const saveLabor = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editLb) { await supabase.from("labor").update(formData as any).eq("id", editLb.id); toast({ title: "Worker updated" }); }
-      else { await supabase.from("labor").insert(formData as any); toast({ title: "Worker added" }); }
+      if (editLb) {
+        await supabase.from("labor").update(formData as any).eq("id", editLb.id);
+        log("update", "operations", { id: editLb.id, label: `Worker: ${formData.worker_name || editLb.worker_name}` });
+        toast({ title: "Worker updated" });
+      } else {
+        const { data: inserted } = await supabase.from("labor").insert(formData as any).select().single();
+        log("create", "operations", { id: inserted?.id, label: `Worker: ${formData.worker_name}` });
+        toast({ title: "Worker added" });
+      }
       setLbDialogOpen(false); setEditLb(null); queryClient.invalidateQueries({ queryKey: ["labor"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
@@ -88,7 +109,12 @@ export default function Operations() {
 
   const deleteLabor = async () => {
     if (!editLb) return; setSaving(true);
-    try { await supabase.from("labor").delete().eq("id", editLb.id); toast({ title: "Worker deleted" }); setLbDeleteOpen(false); setEditLb(null); queryClient.invalidateQueries({ queryKey: ["labor"] }); }
+    try {
+      await supabase.from("labor").delete().eq("id", editLb.id);
+      log("delete", "operations", { id: editLb.id, label: `Worker: ${editLb.worker_name}` });
+      toast({ title: "Worker deleted" });
+      setLbDeleteOpen(false); setEditLb(null); queryClient.invalidateQueries({ queryKey: ["labor"] });
+    }
     catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
   };
