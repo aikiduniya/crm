@@ -19,6 +19,7 @@ import Activity from "./pages/Activity.tsx";
 import Roles from "./pages/Roles.tsx";
 import Settings from "./pages/Settings.tsx";
 import Trash from "./pages/Trash.tsx";
+import ExportRequests from "./pages/ExportRequests.tsx";
 import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/roles" element={<ProtectedRoute><Roles /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/trash" element={<ProtectedRoute><Trash /></ProtectedRoute>} />
+            <Route path="/export-requests" element={<ProtectedRoute><ExportRequests /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
