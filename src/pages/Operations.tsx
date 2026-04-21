@@ -81,7 +81,7 @@ export default function Operations() {
   const deleteEquipment = async () => {
     if (!editEq) return; setSaving(true);
     try {
-      await supabase.from("equipment").delete().eq("id", editEq.id);
+      await supabase.from("equipment").update({ deleted_at: new Date().toISOString() }).eq("id", editEq.id);
       log("delete", "operations", { id: editEq.id, label: `Equipment: ${editEq.name}` });
       toast({ title: "Equipment deleted" });
       setEqDeleteOpen(false); setEditEq(null); queryClient.invalidateQueries({ queryKey: ["equipment"] });
@@ -110,7 +110,7 @@ export default function Operations() {
   const deleteLabor = async () => {
     if (!editLb) return; setSaving(true);
     try {
-      await supabase.from("labor").delete().eq("id", editLb.id);
+      await supabase.from("labor").update({ deleted_at: new Date().toISOString() }).eq("id", editLb.id);
       log("delete", "operations", { id: editLb.id, label: `Worker: ${editLb.worker_name}` });
       toast({ title: "Worker deleted" });
       setLbDeleteOpen(false); setEditLb(null); queryClient.invalidateQueries({ queryKey: ["labor"] });
