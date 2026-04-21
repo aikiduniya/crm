@@ -68,7 +68,7 @@ export default function Sales() {
   const handleDelete = async () => {
     if (!editItem) return; setSaving(true);
     try {
-      const { error } = await supabase.from("sales_deals").delete().eq("id", editItem.id);
+      const { error } = await supabase.from("sales_deals").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id } as any).eq("id", editItem.id);
       if (error) throw error;
       log("delete", "sales", { id: editItem.id, label: editItem.title });
       toast({ title: "Deal deleted" });

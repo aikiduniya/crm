@@ -66,7 +66,7 @@ export default function Clients() {
   const handleDelete = async () => {
     if (!editItem) return; setSaving(true);
     try {
-      const { error } = await supabase.from("clients").delete().eq("id", editItem.id);
+      const { error } = await supabase.from("clients").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id } as any).eq("id", editItem.id);
       if (error) throw error;
       log("delete", "clients", { id: editItem.id, label: editItem.company_name });
       toast({ title: "Client deleted" });

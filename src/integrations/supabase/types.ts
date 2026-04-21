@@ -63,6 +63,8 @@ export type Database = {
           contact_name: string
           created_at: string
           created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           email: string | null
           id: string
           notes: string | null
@@ -79,6 +81,8 @@ export type Database = {
           contact_name: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           id?: string
           notes?: string | null
@@ -95,6 +99,8 @@ export type Database = {
           contact_name?: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           id?: string
           notes?: string | null
@@ -140,6 +146,8 @@ export type Database = {
       documents: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           file_size: number | null
           file_url: string | null
           id: string
@@ -152,6 +160,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           file_size?: number | null
           file_url?: string | null
           id?: string
@@ -164,6 +174,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           file_size?: number | null
           file_url?: string | null
           id?: string
@@ -189,6 +201,8 @@ export type Database = {
           condition: string | null
           created_at: string
           daily_rate: number | null
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           last_maintenance: string | null
           name: string
@@ -203,6 +217,8 @@ export type Database = {
           condition?: string | null
           created_at?: string
           daily_rate?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           last_maintenance?: string | null
           name: string
@@ -217,6 +233,8 @@ export type Database = {
           condition?: string | null
           created_at?: string
           daily_rate?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           last_maintenance?: string | null
           name?: string
@@ -243,6 +261,8 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           due_date: string | null
           id: string
           invoice_number: string
@@ -257,6 +277,8 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           due_date?: string | null
           id?: string
           invoice_number: string
@@ -271,6 +293,8 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           due_date?: string | null
           id?: string
           invoice_number?: string
@@ -300,6 +324,8 @@ export type Database = {
       labor: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           hourly_rate: number | null
           hours_logged: number | null
           id: string
@@ -313,6 +339,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           hourly_rate?: number | null
           hours_logged?: number | null
           id?: string
@@ -326,6 +354,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           hourly_rate?: number | null
           hours_logged?: number | null
           id?: string
@@ -354,6 +384,8 @@ export type Database = {
           contact_name: string
           created_at: string
           created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           email: string | null
           id: string
           notes: string | null
@@ -369,6 +401,8 @@ export type Database = {
           contact_name: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           id?: string
           notes?: string | null
@@ -384,6 +418,8 @@ export type Database = {
           contact_name?: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           id?: string
           notes?: string | null
@@ -434,6 +470,8 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           description: string | null
           end_date: string | null
           id: string
@@ -450,6 +488,8 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
@@ -466,6 +506,8 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
@@ -531,6 +573,8 @@ export type Database = {
           client_name: string
           created_at: string
           created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           expected_close: string | null
           id: string
           notes: string | null
@@ -545,6 +589,8 @@ export type Database = {
           client_name: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           expected_close?: string | null
           id?: string
           notes?: string | null
@@ -559,6 +605,8 @@ export type Database = {
           client_name?: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           expected_close?: string | null
           id?: string
           notes?: string | null
@@ -614,6 +662,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      purge_record: {
+        Args: { _id: string; _table: string }
+        Returns: undefined
+      }
+      restore_record: {
+        Args: { _id: string; _table: string }
+        Returns: undefined
       }
       user_can: { Args: { _action: string; _module: string }; Returns: boolean }
     }

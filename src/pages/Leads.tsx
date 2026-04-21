@@ -95,7 +95,7 @@ export default function Leads() {
     if (!editItem) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("leads").delete().eq("id", editItem.id);
+      const { error } = await supabase.from("leads").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id }).eq("id", editItem.id);
       if (error) throw error;
       log("delete", "leads", { id: editItem.id, label: editItem.company_name });
       toast({ title: "Lead deleted" });
