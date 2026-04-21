@@ -82,7 +82,7 @@ export default function Projects() {
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("projects").select("*").is("deleted_at", null).order("created_at", { ascending: false });
       if (error) throw error;
       return data as Project[];
     },

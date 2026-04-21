@@ -54,7 +54,7 @@ export default function Documents() {
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ["documents"],
-    queryFn: async () => { const { data, error } = await supabase.from("documents").select("*").order("created_at", { ascending: false }); if (error) throw error; return data as Document[]; },
+    queryFn: async () => { const { data, error } = await supabase.from("documents").select("*").is("deleted_at", null).order("created_at", { ascending: false }); if (error) throw error; return data as Document[]; },
   });
 
   const handleSave = async (e: React.FormEvent) => {

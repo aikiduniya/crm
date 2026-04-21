@@ -41,7 +41,7 @@ export default function Clients() {
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients"],
-    queryFn: async () => { const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: false }); if (error) throw error; return data as Client[]; },
+    queryFn: async () => { const { data, error } = await supabase.from("clients").select("*").is("deleted_at", null).order("created_at", { ascending: false }); if (error) throw error; return data as Client[]; },
   });
 
   const handleSave = async (formData: Record<string, any>) => {
