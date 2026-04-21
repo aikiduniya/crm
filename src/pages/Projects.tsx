@@ -15,6 +15,7 @@ import { CrudDialog, type FieldConfig } from "@/components/CrudDialog";
 import { DeleteDialog } from "@/components/DeleteDialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 type Project = {
   id: string;
@@ -71,6 +72,7 @@ export default function Projects() {
   const { user } = useAuth();
   const { can } = usePermissions();
   const { toast } = useToast();
+  const { log } = useActivityLogger();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -92,10 +94,12 @@ export default function Projects() {
       if (editItem) {
         const { error } = await supabase.from("projects").update(formData as any).eq("id", editItem.id);
         if (error) throw error;
+        log("update", "projects", { id: editItem.id, label: formData.name || editItem.name });
         toast({ title: "Project updated" });
       } else {
-        const { error } = await supabase.from("projects").insert({ ...formData, created_by: user?.id } as any);
+        const { data: inserted, error } = await supabase.from("projects").insert({ ...formData, created_by: user?.id } as any).select().single();
         if (error) throw error;
+        log("create", "projects", { id: inserted?.id, label: formData.name });
         toast({ title: "Project created" });
       }
       setDialogOpen(false); setEditItem(null);
@@ -110,6 +114,7 @@ export default function Projects() {
     try {
       const { error } = await supabase.from("projects").delete().eq("id", editItem.id);
       if (error) throw error;
+      log("delete", "projects", { id: editItem.id, label: editItem.name });
       toast({ title: "Project deleted" });
       setDeleteOpen(false); setEditItem(null);
       queryClient.invalidateQueries({ queryKey: ["projects"] });
