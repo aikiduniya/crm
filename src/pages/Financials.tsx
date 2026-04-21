@@ -12,6 +12,7 @@ import { CrudDialog, type FieldConfig } from "@/components/CrudDialog";
 import { DeleteDialog } from "@/components/DeleteDialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 type Invoice = { id: string; invoice_number: string; amount: number; status: string; due_date: string | null; paid_date: string | null; notes: string | null; client_id: string | null; project_id: string | null };
 
@@ -31,6 +32,7 @@ export default function Financials() {
   const { user } = useAuth();
   const { can } = usePermissions();
   const { toast } = useToast();
+  const { log } = useActivityLogger();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -45,8 +47,17 @@ export default function Financials() {
   const handleSave = async (formData: Record<string, any>) => {
     setSaving(true);
     try {
-      if (editItem) { const { error } = await supabase.from("invoices").update(formData as any).eq("id", editItem.id); if (error) throw error; toast({ title: "Invoice updated" }); }
-      else { const { error } = await supabase.from("invoices").insert({ ...formData, created_by: user?.id } as any); if (error) throw error; toast({ title: "Invoice created" }); }
+      if (editItem) {
+        const { error } = await supabase.from("invoices").update(formData as any).eq("id", editItem.id);
+        if (error) throw error;
+        log("update", "financials", { id: editItem.id, label: formData.invoice_number || editItem.invoice_number });
+        toast({ title: "Invoice updated" });
+      } else {
+        const { data: inserted, error } = await supabase.from("invoices").insert({ ...formData, created_by: user?.id } as any).select().single();
+        if (error) throw error;
+        log("create", "financials", { id: inserted?.id, label: formData.invoice_number });
+        toast({ title: "Invoice created" });
+      }
       setDialogOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["invoices"] });
     } catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
@@ -54,7 +65,13 @@ export default function Financials() {
 
   const handleDelete = async () => {
     if (!editItem) return; setSaving(true);
-    try { const { error } = await supabase.from("invoices").delete().eq("id", editItem.id); if (error) throw error; toast({ title: "Invoice deleted" }); setDeleteOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["invoices"] }); }
+    try {
+      const { error } = await supabase.from("invoices").delete().eq("id", editItem.id);
+      if (error) throw error;
+      log("delete", "financials", { id: editItem.id, label: editItem.invoice_number });
+      toast({ title: "Invoice deleted" });
+      setDeleteOpen(false); setEditItem(null); queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    }
     catch (err: any) { toast({ title: "Error", description: err.message, variant: "destructive" }); }
     setSaving(false);
   };
