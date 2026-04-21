@@ -138,11 +138,11 @@ export default function Operations() {
           </TabsList>
           <TabsContent value="equipment" className="mt-4">
             {can("operations", "create") && <div className="flex justify-end mb-3"><Button className="gradient-primary" onClick={() => { setEditEq(null); setEqDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Equipment</Button></div>}
-            <DataTable title="Equipment Inventory" columns={eqColumns} data={equipment} />
+            <DataTable title="Equipment Inventory" columns={eqColumns} data={equipment} searchKeys={["name","type"]} searchPlaceholder="Search equipment..." filters={[{key:"status",label:"Status",options:[{label:"Available",value:"Available"},{label:"In Use",value:"In Use"},{label:"Maintenance",value:"Maintenance"}]}]} />
           </TabsContent>
           <TabsContent value="labor" className="mt-4">
             {can("operations", "create") && <div className="flex justify-end mb-3"><Button className="gradient-primary" onClick={() => { setEditLb(null); setLbDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Worker</Button></div>}
-            <DataTable title="Workforce" columns={lbColumns} data={labor} />
+            <DataTable title="Workforce" columns={lbColumns} data={labor} searchKeys={["worker_name","role"]} searchPlaceholder="Search workers..." filters={[{key:"status",label:"Status",options:[{label:"Available",value:"Available"},{label:"Active",value:"Active"},{label:"On Leave",value:"On Leave"}]}]} />
           </TabsContent>
         </Tabs>
       </div>
