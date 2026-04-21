@@ -16,6 +16,7 @@ import Documents from "./pages/Documents.tsx";
 import Reports from "./pages/Reports.tsx";
 import Users from "./pages/Users.tsx";
 import Activity from "./pages/Activity.tsx";
+import Roles from "./pages/Roles.tsx";
 import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute module="reports"><Reports /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute module="users"><Users /></ProtectedRoute>} />
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
+            <Route path="/roles" element={<ProtectedRoute><Roles /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
