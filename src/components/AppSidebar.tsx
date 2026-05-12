@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, FolderKanban, UserCircle, TrendingUp,
-  Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity, KeyRound, Trash2, Download,
+  Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity, KeyRound, Trash2, Download, BadgeCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import companyLogo from "@/assets/company-logo.jpeg";
@@ -23,6 +23,7 @@ const mainItems = [
 
 const operationsItems = [
   { title: "Operations", url: "/operations", icon: Wrench, module: "operations" as const },
+  { title: "Employees", url: "/employees", icon: BadgeCheck, module: "employees" as const },
   { title: "Financials", url: "/financials", icon: DollarSign, module: "financials" as const },
   { title: "Documents", url: "/documents", icon: FileText, module: "documents" as const },
   { title: "Reports", url: "/reports", icon: BarChart3, module: "reports" as const },
