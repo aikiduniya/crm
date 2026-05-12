@@ -218,10 +218,10 @@ export default function Employees() {
     { header: "Card Expiry", accessor: (r) => r.card_expiry ? new Date(r.card_expiry).toLocaleDateString() : "—" },
     { header: "Contract", accessor: (r) => <span className="text-xs">{r.contract_type || "—"}</span> },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
-    ...(can("users", "edit") || can("users", "delete") ? [{ header: "Actions", accessor: (r: Employee) => (
+    ...(can("employees", "edit") || can("employees", "delete") ? [{ header: "Actions", accessor: (r: Employee) => (
       <div className="flex gap-1">
-        {can("users", "edit") && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditItem(r); setDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>}
-        {can("users", "delete") && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditItem(r); setDeleteOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+        {can("employees", "edit") && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditItem(r); setDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>}
+        {can("employees", "delete") && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditItem(r); setDeleteOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
       </div>
     ), className: "w-24" } as Column<Employee>] : []),
   ];
@@ -241,7 +241,7 @@ export default function Employees() {
             <p className="text-muted-foreground text-sm mt-1">Manage workforce, work permits and contracts</p>
           </div>
           <div className="flex gap-2">
-            {can("users", "create") && (
+            {can("employees", "create") && (
               <>
                 <input
                   ref={fileRef}
