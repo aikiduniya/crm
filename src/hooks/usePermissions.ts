@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
-export type Module = "dashboard" | "leads" | "projects" | "clients" | "sales" | "operations" | "financials" | "documents" | "reports" | "users";
+export type Module = "dashboard" | "leads" | "projects" | "clients" | "sales" | "operations" | "financials" | "documents" | "reports" | "users" | "employees";
 export type Permission = "view" | "create" | "edit" | "delete";
 
 export function usePermissions() {
