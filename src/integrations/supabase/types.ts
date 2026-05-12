@@ -196,6 +196,75 @@ export type Database = {
           },
         ]
       }
+      employees: {
+        Row: {
+          card_expiry: string | null
+          card_number: string | null
+          card_type: string | null
+          contract_type: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          email: string | null
+          emirates_id: string | null
+          full_name: string
+          id: string
+          job_title: string | null
+          join_date: string | null
+          nationality: string | null
+          notes: string | null
+          passport_number: string | null
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          card_expiry?: string | null
+          card_number?: string | null
+          card_type?: string | null
+          contract_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          email?: string | null
+          emirates_id?: string | null
+          full_name: string
+          id?: string
+          job_title?: string | null
+          join_date?: string | null
+          nationality?: string | null
+          notes?: string | null
+          passport_number?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          card_expiry?: string | null
+          card_number?: string | null
+          card_type?: string | null
+          contract_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          email?: string | null
+          emirates_id?: string | null
+          full_name?: string
+          id?: string
+          job_title?: string | null
+          join_date?: string | null
+          nationality?: string | null
+          notes?: string | null
+          passport_number?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       equipment: {
         Row: {
           condition: string | null
