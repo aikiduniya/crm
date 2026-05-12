@@ -22,6 +22,7 @@ const MODULES = [
   { key: "labor", label: "Labor", labelField: "worker_name" },
   { key: "invoices", label: "Invoices", labelField: "invoice_number" },
   { key: "documents", label: "Documents", labelField: "name" },
+  { key: "employees", label: "Employees", labelField: "full_name" },
 ] as const;
 
 export default function Trash() {
