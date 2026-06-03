@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export interface Column<T> {
@@ -27,11 +27,15 @@ interface DataTableProps<T> {
   searchKeys?: (keyof T)[];
   filters?: FilterOption[];
   searchPlaceholder?: string;
+  pageSize?: number;
+  pageSizeOptions?: number[];
 }
 
-export function DataTable<T extends { id: string | number }>({ columns, data, title, action, searchKeys, filters, searchPlaceholder = "Search..." }: DataTableProps<T>) {
+export function DataTable<T extends { id: string | number }>({ columns, data, title, action, searchKeys, filters, searchPlaceholder = "Search...", pageSize: initialPageSize = 10, pageSizeOptions = [10, 25, 50, 100] }: DataTableProps<T>) {
   const [search, setSearch] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const filtered = useMemo(() => {
     let result = data;
@@ -48,6 +52,11 @@ export function DataTable<T extends { id: string | number }>({ columns, data, ti
     });
     return result;
   }, [data, search, searchKeys, filterValues]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  useEffect(() => { if (page > totalPages) setPage(1); }, [totalPages, page]);
+  useEffect(() => { setPage(1); }, [search, filterValues, pageSize]);
+  const paginated = useMemo(() => filtered.slice((page - 1) * pageSize, page * pageSize), [filtered, page, pageSize]);
 
   const hasControls = !!searchKeys?.length || !!filters?.length;
   const hasActiveFilters = search.trim() !== "" || Object.values(filterValues).some((v) => v && v !== "__all__");
@@ -111,13 +120,13 @@ export function DataTable<T extends { id: string | number }>({ columns, data, ti
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filtered.length === 0 ? (
+          {paginated.length === 0 ? (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={columns.length} className="text-center py-12 text-sm text-muted-foreground">
                 No records found
               </TableCell>
             </TableRow>
-          ) : filtered.map((row) => (
+          ) : paginated.map((row) => (
             <TableRow key={row.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
               {columns.map((col, i) => (
                 <TableCell key={i} className={col.className}>
@@ -128,6 +137,31 @@ export function DataTable<T extends { id: string | number }>({ columns, data, ti
           ))}
         </TableBody>
       </Table>
+      {filtered.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t bg-muted/20 text-xs">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <span>Rows per page</span>
+            <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+              <SelectTrigger className="h-8 w-[72px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {pageSizeOptions.map((s) => (
+                  <SelectItem key={s} value={String(s)}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="text-muted-foreground">
+            {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} of {filtered.length}
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="sm" className="h-8" disabled={page <= 1} onClick={() => setPage(1)}>First</Button>
+            <Button variant="outline" size="sm" className="h-8" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
+            <span className="px-2 text-muted-foreground">Page {page} / {totalPages}</span>
+            <Button variant="outline" size="sm" className="h-8" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</Button>
+            <Button variant="outline" size="sm" className="h-8" disabled={page >= totalPages} onClick={() => setPage(totalPages)}>Last</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
