@@ -30,6 +30,7 @@ type Employee = {
   email: string | null;
   join_date: string | null;
   notes: string | null;
+  salary: number | null;
 };
 
 const employeeFields: FieldConfig[] = [
@@ -49,6 +50,7 @@ const employeeFields: FieldConfig[] = [
     { label: "Limited", value: "Limited" },
     { label: "Unlimited", value: "Unlimited" },
   ]},
+  { name: "salary", label: "Salary (AED)", type: "number" },
   { name: "status", label: "Status", type: "select", options: [
     { label: "Active", value: "Active" },
     { label: "On Leave", value: "On Leave" },
@@ -174,6 +176,7 @@ export default function Employees() {
         cardexpiry: "card_expiry", expiry: "card_expiry", expirydate: "card_expiry",
         cardtype: "card_type", permittype: "card_type",
         contracttype: "contract_type", contract: "contract_type",
+        salary: "salary", basicsalary: "salary", monthlysalary: "salary", wage: "salary",
         status: "status", phone: "phone", mobile: "phone", email: "email", joindate: "join_date", notes: "notes",
       };
       const payload = rows.map((r) => {
@@ -182,6 +185,7 @@ export default function Employees() {
           const target = map[norm(k)];
           if (!target) return;
           if (target === "card_expiry" || target === "join_date") obj[target] = parseDateFlexible(v);
+          else if (target === "salary") obj[target] = v === "" || v === null ? null : Number(String(v).replace(/[^0-9.\-]/g, "")) || null;
           else obj[target] = v === "" ? null : String(v).trim();
         });
         if (obj.full_name) obj.created_by = user?.id;
@@ -217,6 +221,7 @@ export default function Employees() {
     { header: "Card #", accessor: (r) => <span className="font-mono text-xs">{r.card_number || "—"}</span> },
     { header: "Card Expiry", accessor: (r) => r.card_expiry ? new Date(r.card_expiry).toLocaleDateString() : "—" },
     { header: "Contract", accessor: (r) => <span className="text-xs">{r.contract_type || "—"}</span> },
+    { header: "Salary", accessor: (r) => <span className="text-sm font-medium">{r.salary ? `AED ${Number(r.salary).toLocaleString()}` : "—"}</span> },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     ...(can("employees", "edit") || can("employees", "delete") ? [{ header: "Actions", accessor: (r: Employee) => (
       <div className="flex gap-1">
