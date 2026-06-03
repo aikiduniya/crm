@@ -216,6 +216,7 @@ export type Database = {
           notes: string | null
           passport_number: string | null
           phone: string | null
+          salary: number | null
           status: string
           updated_at: string
         }
@@ -238,6 +239,7 @@ export type Database = {
           notes?: string | null
           passport_number?: string | null
           phone?: string | null
+          salary?: number | null
           status?: string
           updated_at?: string
         }
@@ -260,6 +262,7 @@ export type Database = {
           notes?: string | null
           passport_number?: string | null
           phone?: string | null
+          salary?: number | null
           status?: string
           updated_at?: string
         }
