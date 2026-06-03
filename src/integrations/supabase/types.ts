@@ -278,6 +278,7 @@ export type Database = {
           next_maintenance: string | null
           notes: string | null
           project_id: string | null
+          quantity: number
           status: string
           type: string
           updated_at: string
@@ -294,6 +295,7 @@ export type Database = {
           next_maintenance?: string | null
           notes?: string | null
           project_id?: string | null
+          quantity?: number
           status?: string
           type: string
           updated_at?: string
@@ -310,6 +312,7 @@ export type Database = {
           next_maintenance?: string | null
           notes?: string | null
           project_id?: string | null
+          quantity?: number
           status?: string
           type?: string
           updated_at?: string
