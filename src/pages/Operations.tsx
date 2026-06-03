@@ -14,15 +14,13 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
 
-type Equipment = { id: string; name: string; type: string; status: string; condition: string | null; daily_rate: number | null; last_maintenance: string | null };
+type Equipment = { id: string; name: string; type: string; quantity: number | null; status: string; condition: string | null; daily_rate: number | null; last_maintenance: string | null };
 type Labor = { id: string; worker_name: string; role: string; status: string; hourly_rate: number | null; hours_logged: number | null; phone: string | null };
 
 const equipmentFields: FieldConfig[] = [
   { name: "name", label: "Equipment Name", type: "text", required: true },
-  { name: "type", label: "Type", type: "select", required: true, options: [
-    { label: "Heavy", value: "Heavy" }, { label: "Medium", value: "Medium" },
-    { label: "Crane", value: "Crane" }, { label: "Specialty", value: "Specialty" }, { label: "Access", value: "Access" },
-  ]},
+  { name: "type", label: "Type", type: "text", required: true, placeholder: "e.g. Power Tool, Machinery, Cutting Tool" },
+  { name: "quantity", label: "Quantity", type: "number" },
   { name: "status", label: "Status", type: "select", options: [
     { label: "Available", value: "Available" }, { label: "In Use", value: "In Use" }, { label: "Maintenance", value: "Maintenance" },
   ]},
@@ -121,6 +119,7 @@ export default function Operations() {
 
   const eqColumns: Column<Equipment>[] = [
     { header: "Equipment", accessor: (r) => (<div><p className="font-medium">{r.name}</p><p className="text-xs text-muted-foreground">{r.type}</p></div>) },
+    { header: "Qty", accessor: (r) => <span className="font-medium">{r.quantity ?? 1}</span> },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     { header: "Condition", accessor: (r) => <span>{r.condition || "—"}</span> },
     { header: "Daily Rate", accessor: (r) => <span className="font-medium">{r.daily_rate ? `$${r.daily_rate}` : "—"}</span> },
