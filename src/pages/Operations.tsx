@@ -122,7 +122,6 @@ export default function Operations() {
     { header: "Qty", accessor: (r) => <span className="font-medium">{r.quantity ?? 1}</span> },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     { header: "Condition", accessor: (r) => <span>{r.condition || "—"}</span> },
-    { header: "Daily Rate", accessor: (r) => <span className="font-medium">{r.daily_rate ? `$${r.daily_rate}` : "—"}</span> },
     ...(can("operations", "edit") ? [{ header: "Actions", accessor: (r: Equipment) => (
       <div className="flex gap-1">
         <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setEditEq(r); setEqDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
