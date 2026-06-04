@@ -1,4 +1,6 @@
 // CSV + simple PDF export helpers (client-side, no extra deps)
+import { openBrandedPrintWindow } from "./printBranding";
+
 export function downloadCSV(filename: string, rows: Record<string, any>[], columns?: string[]) {
   if (!rows.length) {
     const blob = new Blob(["(no data)"], { type: "text/csv" });
@@ -28,46 +30,64 @@ export function printInvoice(invoice: {
   due_date?: string | null; paid_date?: string | null; notes?: string | null;
   client_name?: string; project_name?: string; created_at?: string;
 }) {
-  const w = window.open("", "_blank", "width=800,height=900");
-  if (!w) return;
-  const fmt = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD" });
-  w.document.write(`<!doctype html><html><head><title>${invoice.invoice_number}</title>
-    <style>
-      body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0f172a;padding:48px;max-width:780px;margin:0 auto}
-      .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1e3a5f;padding-bottom:24px;margin-bottom:32px}
-      .brand{font-size:28px;font-weight:700;color:#1e3a5f}.brand small{display:block;font-size:13px;font-weight:400;color:#64748b;margin-top:4px}
-      h1{font-size:34px;margin:0;color:#1e3a5f;letter-spacing:-0.5px}
-      .meta{text-align:right;color:#64748b;font-size:13px;line-height:1.6}
-      .meta strong{color:#0f172a;font-size:15px}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin:32px 0}
-      .label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#64748b;margin-bottom:6px}
-      .value{font-size:15px;color:#0f172a}
-      table{width:100%;border-collapse:collapse;margin-top:24px}
-      th{background:#f1f5f9;text-align:left;padding:12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#475569}
-      td{padding:14px 12px;border-bottom:1px solid #e2e8f0}
-      .total{text-align:right;font-size:24px;font-weight:700;color:#1e3a5f;margin-top:24px;padding-top:16px;border-top:2px solid #1e3a5f}
-      .badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;background:#fef3c7;color:#92400e}
-      .badge.paid{background:#d1fae5;color:#065f46}.badge.overdue{background:#fee2e2;color:#991b1b}
-      .notes{margin-top:32px;padding:16px;background:#f8fafc;border-radius:8px;color:#475569;font-size:13px;line-height:1.6}
-      @media print{body{padding:24px}}
-    </style></head><body>
-    <div class="head">
-      <div><div class="brand">BuildOps CRM<small>Construction Management Suite</small></div></div>
-      <div><h1>INVOICE</h1><div class="meta"><strong>${invoice.invoice_number}</strong><br>Issued ${invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div></div>
+  const fmt = (n: number) => n.toLocaleString("en-AE", { style: "currency", currency: "AED" });
+  const issued = invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : new Date().toLocaleDateString();
+  const body = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+      <div>
+        <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#64748b">Bill To</div>
+        <div style="font-size:16px;font-weight:600;margin-top:4px">${invoice.client_name || "—"}</div>
+        <div style="font-size:13px;color:#475569;margin-top:2px">Project: ${invoice.project_name || "—"}</div>
+      </div>
+      <div style="text-align:right">
+        <h1 style="font-size:30px;margin:0;color:#0a1f5c;letter-spacing:-0.5px">INVOICE</h1>
+        <div style="color:#64748b;font-size:13px;line-height:1.6;margin-top:4px">
+          <strong style="color:#0f172a;font-size:14px">${invoice.invoice_number}</strong><br>
+          Issued ${issued}<br>Due ${invoice.due_date || "—"}
+        </div>
+      </div>
     </div>
-    <div class="grid">
-      <div><div class="label">Bill To</div><div class="value"><strong>${invoice.client_name || "—"}</strong></div></div>
-      <div><div class="label">Project</div><div class="value">${invoice.project_name || "—"}</div></div>
-      <div><div class="label">Due Date</div><div class="value">${invoice.due_date || "—"}</div></div>
-      <div><div class="label">Status</div><div class="value"><span class="badge ${invoice.status.toLowerCase()}">${invoice.status}</span></div></div>
-    </div>
-    <table>
-      <thead><tr><th>Description</th><th style="text-align:right">Amount</th></tr></thead>
-      <tbody><tr><td>${invoice.notes || "Services rendered"}</td><td style="text-align:right">${fmt(invoice.amount)}</td></tr></tbody>
+    <table style="width:100%;border-collapse:collapse;margin-top:8px">
+      <thead><tr>
+        <th style="background:#0a1f5c;color:#fff;text-align:left;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px">Description</th>
+        <th style="background:#0a1f5c;color:#fff;text-align:right;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px">Amount</th>
+      </tr></thead>
+      <tbody><tr>
+        <td style="padding:14px 12px;border-bottom:1px solid #e2e8f0">${invoice.notes || "Services rendered"}</td>
+        <td style="padding:14px 12px;border-bottom:1px solid #e2e8f0;text-align:right">${fmt(invoice.amount)}</td>
+      </tr></tbody>
     </table>
-    <div class="total">Total: ${fmt(invoice.amount)}</div>
-    ${invoice.paid_date ? `<div class="notes">Paid on ${invoice.paid_date}</div>` : ""}
-    <script>window.onload=()=>setTimeout(()=>window.print(),300)</script>
-    </body></html>`);
-  w.document.close();
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:2px solid #0a1f5c">
+      <div style="font-size:13px;color:#475569">Status: <strong style="color:#0a1f5c">${invoice.status}</strong>${invoice.paid_date ? ` · Paid on ${invoice.paid_date}` : ""}</div>
+      <div style="font-size:22px;font-weight:700;color:#0a1f5c">Total: ${fmt(invoice.amount)}</div>
+    </div>
+  `;
+  openBrandedPrintWindow({ title: invoice.invoice_number, bodyHTML: body });
+}
+
+/** Print a branded report with a title and a generic data table (used for non-invoice exports). */
+export function printBrandedTable(opts: {
+  title: string;
+  subtitle?: string;
+  columns: string[];
+  rows: Record<string, any>[];
+}) {
+  const head = opts.columns.map(c =>
+    `<th style="background:#0a1f5c;color:#fff;text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px">${c}</th>`
+  ).join("");
+  const body = opts.rows.map(r =>
+    `<tr>${opts.columns.map(c => `<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px">${r[c] ?? ""}</td>`).join("")}</tr>`
+  ).join("");
+  const html = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px">
+      <div>
+        <h1 style="font-size:24px;margin:0;color:#0a1f5c">${opts.title}</h1>
+        ${opts.subtitle ? `<div style="color:#64748b;font-size:13px;margin-top:4px">${opts.subtitle}</div>` : ""}
+      </div>
+      <div style="color:#64748b;font-size:12px">Generated ${new Date().toLocaleString()}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
+    ${opts.rows.length === 0 ? `<div style="text-align:center;color:#94a3b8;padding:32px">No records</div>` : ""}
+  `;
+  openBrandedPrintWindow({ title: opts.title, bodyHTML: html });
 }
