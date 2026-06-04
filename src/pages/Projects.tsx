@@ -35,8 +35,8 @@ const projectFields: FieldConfig[] = [
     { label: "Planning", value: "Planning" }, { label: "In Progress", value: "In Progress" },
     { label: "Completed", value: "Completed" }, { label: "On Hold", value: "On Hold" },
   ]},
-  { name: "budget", label: "Budget ($)", type: "number" },
-  { name: "spent", label: "Spent ($)", type: "number" },
+  { name: "budget", label: "Budget (AED)", type: "number" },
+  { name: "spent", label: "Spent (AED)", type: "number" },
   { name: "progress", label: "Progress (%)", type: "number" },
   { name: "start_date", label: "Start Date", type: "date" },
   { name: "end_date", label: "End Date", type: "date" },
@@ -136,7 +136,7 @@ export default function Projects() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Total Projects" value={String(stats.total)} icon={FolderKanban} />
           <StatCard title="Active" value={String(stats.active)} icon={Calendar} variant="primary" />
-          <StatCard title="Total Budget" value={`$${(stats.budget / 1000000).toFixed(1)}M`} icon={DollarSign} variant="accent" />
+          <StatCard title="Total Budget" value={`AED ${(stats.budget / 1000000).toFixed(1)}M`} icon={DollarSign} variant="accent" />
           <StatCard title="Completed" value={String(filterByStatus("Completed").length)} icon={Users} variant="success" />
         </div>
 
