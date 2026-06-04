@@ -23,7 +23,7 @@ const clientFields: FieldConfig[] = [
   { name: "phone", label: "Phone", type: "text" },
   { name: "address", label: "Address", type: "text" },
   { name: "status", label: "Status", type: "select", options: [{ label: "Active", value: "Active" }, { label: "Inactive", value: "Inactive" }] },
-  { name: "total_value", label: "Total Value ($)", type: "number" },
+  { name: "total_value", label: "Total Value (AED)", type: "number" },
   { name: "satisfaction", label: "Satisfaction (1-5)", type: "number" },
   { name: "notes", label: "Notes", type: "textarea" },
 ];
@@ -112,7 +112,7 @@ export default function Clients() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Total Clients" value={String(clients.length)} icon={UserCircle} />
           <StatCard title="Active" value={String(clients.filter(c => c.status === "Active").length)} icon={Building2} variant="primary" />
-          <StatCard title="Total Value" value={`$${(clients.reduce((s, c) => s + (c.total_value || 0), 0) / 1000000).toFixed(1)}M`} icon={Star} variant="accent" />
+          <StatCard title="Total Value" value={`AED ${(clients.reduce((s, c) => s + (c.total_value || 0), 0) / 1000000).toFixed(1)}M`} icon={Star} variant="accent" />
           <StatCard title="Avg Satisfaction" value={clients.length ? (clients.reduce((s, c) => s + (c.satisfaction || 0), 0) / clients.length).toFixed(1) : "0"} icon={Star} variant="success" />
         </div>
         {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="All Clients" columns={columns} data={clients} searchKeys={["company_name","contact_name","email","phone"]} searchPlaceholder="Search clients..." filters={[{key:"status",label:"Status",options:[{label:"Active",value:"Active"},{label:"Inactive",value:"Inactive"},{label:"Prospect",value:"Prospect"}]}]} />}
