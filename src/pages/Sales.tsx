@@ -24,7 +24,7 @@ const dealFields: FieldConfig[] = [
     { label: "Proposal", value: "Proposal" }, { label: "Negotiation", value: "Negotiation" },
     { label: "Won", value: "Won" }, { label: "Lost", value: "Lost" },
   ]},
-  { name: "value", label: "Deal Value ($)", type: "number" },
+  { name: "value", label: "Deal Value (AED)", type: "number" },
   { name: "probability", label: "Probability (%)", type: "number" },
   { name: "expected_close", label: "Expected Close", type: "date" },
   { name: "notes", label: "Notes", type: "textarea" },
@@ -107,7 +107,7 @@ export default function Sales() {
           {can("sales", "create") && <Button className="gradient-primary" onClick={() => { setEditItem(null); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />New Deal</Button>}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Pipeline Value" value={`$${(totalValue / 1000000).toFixed(1)}M`} icon={DollarSign} variant="primary" />
+          <StatCard title="Pipeline Value" value={`AED ${(totalValue / 1000000).toFixed(1)}M`} icon={DollarSign} variant="primary" />
           <StatCard title="Deals Won" value={String(wonDeals.length)} icon={CheckCircle2} variant="success" />
           <StatCard title="Win Rate" value={deals.length ? `${((wonDeals.length / deals.length) * 100).toFixed(0)}%` : "0%"} icon={Target} />
           <StatCard title="Total Deals" value={String(deals.length)} icon={TrendingUp} variant="accent" />

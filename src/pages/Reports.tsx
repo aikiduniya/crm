@@ -110,8 +110,8 @@ export default function Reports() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total Revenue" value={`$${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign} variant="primary" />
-          <StatCard title="Outstanding" value={`$${(outstanding / 1000).toFixed(0)}K`} icon={TrendingUp} variant="accent" />
+          <StatCard title="Total Revenue" value={`AED ${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign} variant="primary" />
+          <StatCard title="Outstanding" value={`AED ${(outstanding / 1000).toFixed(0)}K`} icon={TrendingUp} variant="accent" />
           <StatCard title="Avg Project Progress" value={`${avgProgress}%`} icon={BarChart3} variant="success" />
           <StatCard title="Client Satisfaction" value={`${avgSat}/5`} icon={Star} />
         </div>
@@ -148,7 +148,7 @@ export default function Reports() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" vertical={false} />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" />
                   <YAxis tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" />
-                  <Tooltip formatter={(v: number) => `$${v}k`} />
+                  <Tooltip formatter={(v: number) => `AED ${v}k`} />
                   <Line type="monotone" dataKey="value" stroke="hsl(213, 60%, 42%)" strokeWidth={2.5} dot={{ r: 4 }} name="Revenue" />
                 </LineChart>
               </ResponsiveContainer>
