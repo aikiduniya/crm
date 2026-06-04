@@ -22,7 +22,7 @@ type Invoice = { id: string; invoice_number: string; amount: number; status: str
 
 const invoiceFields: FieldConfig[] = [
   { name: "invoice_number", label: "Invoice Number", type: "text", required: true, placeholder: "INV-2025-001" },
-  { name: "amount", label: "Amount ($)", type: "number", required: true },
+  { name: "amount", label: "Amount (AED)", type: "number", required: true },
   { name: "status", label: "Status", type: "select", options: [
     { label: "Draft", value: "Draft" }, { label: "Pending", value: "Pending" },
     { label: "Paid", value: "Paid" }, { label: "Overdue", value: "Overdue" },
@@ -87,7 +87,7 @@ export default function Financials() {
 
   const columns: Column<Invoice>[] = [
     { header: "Invoice", accessor: (r) => <span className="font-medium">{r.invoice_number}</span> },
-    { header: "Amount", accessor: (r) => <span className="font-bold">${r.amount.toLocaleString()}</span> },
+    { header: "Amount", accessor: (r) => <span className="font-bold">AED {r.amount.toLocaleString()}</span> },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     { header: "Due", accessor: (r) => <span>{r.due_date || "—"}</span> },
     { header: "Actions", accessor: (r: Invoice) => (
@@ -120,9 +120,9 @@ export default function Financials() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total Revenue" value={`$${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign} variant="primary" />
-          <StatCard title="Outstanding" value={`$${(outstanding / 1000).toFixed(0)}K`} icon={CreditCard} />
-          <StatCard title="Overdue" value={`$${(overdue / 1000).toFixed(0)}K`} icon={FileText} />
+          <StatCard title="Total Revenue" value={`AED ${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign} variant="primary" />
+          <StatCard title="Outstanding" value={`AED ${(outstanding / 1000).toFixed(0)}K`} icon={CreditCard} />
+          <StatCard title="Overdue" value={`AED ${(overdue / 1000).toFixed(0)}K`} icon={FileText} />
           <StatCard title="Total Invoices" value={String(invoices.length)} icon={TrendingUp} variant="accent" />
         </div>
         {isLoading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <DataTable title="Invoices" columns={columns} data={invoices} searchKeys={["invoice_number","notes"]} searchPlaceholder="Search invoices..." filters={[{key:"status",label:"Status",options:[{label:"Draft",value:"Draft"},{label:"Pending",value:"Pending"},{label:"Paid",value:"Paid"},{label:"Overdue",value:"Overdue"}]}]} />}
@@ -138,7 +138,7 @@ export default function Financials() {
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border">
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider">Amount</p>
-                  <p className="text-3xl font-bold mt-1">${viewItem.amount.toLocaleString()}</p>
+                  <p className="text-3xl font-bold mt-1">AED {viewItem.amount.toLocaleString()}</p>
                 </div>
                 <StatusBadge status={viewItem.status} />
               </div>
