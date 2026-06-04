@@ -32,11 +32,11 @@ interface RecentProject {
 }
 
 const recentProjects: RecentProject[] = [
-  { id: 1, name: "Downtown Office Tower", client: "Metro Corp", status: "In Progress", progress: 65, value: "$2.4M" },
-  { id: 2, name: "Harbor Bridge Repair", client: "City Council", status: "In Progress", progress: 42, value: "$890K" },
-  { id: 3, name: "Riverside Apartments", client: "Prime Realty", status: "Pending", progress: 10, value: "$5.1M" },
-  { id: 4, name: "Industrial Warehouse", client: "LogiCo", status: "Completed", progress: 100, value: "$1.2M" },
-  { id: 5, name: "School Renovation", client: "Education Dept", status: "In Progress", progress: 78, value: "$650K" },
+  { id: 1, name: "Downtown Office Tower", client: "Metro Corp", status: "In Progress", progress: 65, value: "AED 2.4M" },
+  { id: 2, name: "Harbor Bridge Repair", client: "City Council", status: "In Progress", progress: 42, value: "AED 890K" },
+  { id: 3, name: "Riverside Apartments", client: "Prime Realty", status: "Pending", progress: 10, value: "AED 5.1M" },
+  { id: 4, name: "Industrial Warehouse", client: "LogiCo", status: "Completed", progress: 100, value: "AED 1.2M" },
+  { id: 5, name: "School Renovation", client: "Education Dept", status: "In Progress", progress: 78, value: "AED 650K" },
 ];
 
 const projectColumns: Column<RecentProject>[] = [
@@ -66,7 +66,7 @@ export default function Index() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Active Projects" value="12" change="+2 this month" changeType="positive" icon={FolderKanban} variant="primary" />
-          <StatCard title="Total Revenue" value="$2.93M" change="+18.2% vs last quarter" changeType="positive" icon={DollarSign} variant="accent" />
+          <StatCard title="Total Revenue" value="AED 2.93M" change="+18.2% vs last quarter" changeType="positive" icon={DollarSign} variant="accent" />
           <StatCard title="Open Leads" value="47" change="+12 new this week" changeType="positive" icon={Users} />
           <StatCard title="Win Rate" value="68%" change="+5% vs last month" changeType="positive" icon={TrendingUp} variant="success" />
         </div>
@@ -78,8 +78,8 @@ export default function Index() {
               <BarChart data={revenueData} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" />
-                <YAxis tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" tickFormatter={(v) => `$${v / 1000}k`} />
-                <Tooltip formatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
+                <YAxis tick={{ fontSize: 12 }} stroke="hsl(215, 14%, 50%)" tickFormatter={(v) => `AED ${v / 1000}k`} />
+                <Tooltip formatter={(v: number) => `AED ${(v / 1000).toFixed(0)}k`} />
                 <Bar dataKey="revenue" fill="hsl(213, 60%, 42%)" radius={[4, 4, 0, 0]} name="Revenue" />
                 <Bar dataKey="target" fill="hsl(214, 20%, 90%)" radius={[4, 4, 0, 0]} name="Target" />
               </BarChart>
