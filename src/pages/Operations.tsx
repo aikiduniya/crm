@@ -27,7 +27,7 @@ const equipmentFields: FieldConfig[] = [
   { name: "condition", label: "Condition", type: "select", options: [
     { label: "Excellent", value: "Excellent" }, { label: "Good", value: "Good" }, { label: "Fair", value: "Fair" }, { label: "Poor", value: "Poor" },
   ]},
-  { name: "daily_rate", label: "Daily Rate ($)", type: "number" },
+  { name: "daily_rate", label: "Daily Rate (AED)", type: "number" },
   { name: "last_maintenance", label: "Last Maintenance", type: "date" },
   { name: "notes", label: "Notes", type: "textarea" },
 ];
@@ -38,7 +38,7 @@ const laborFields: FieldConfig[] = [
   { name: "status", label: "Status", type: "select", options: [
     { label: "Available", value: "Available" }, { label: "Active", value: "Active" }, { label: "On Leave", value: "On Leave" },
   ]},
-  { name: "hourly_rate", label: "Hourly Rate ($)", type: "number" },
+  { name: "hourly_rate", label: "Hourly Rate (AED)", type: "number" },
   { name: "phone", label: "Phone", type: "text" },
   { name: "notes", label: "Notes", type: "textarea" },
 ];
