@@ -44,7 +44,7 @@ const leadFields: FieldConfig[] = [
     { label: "Proposal", value: "Proposal" }, { label: "Negotiation", value: "Negotiation" },
     { label: "Won", value: "Won" }, { label: "Lost", value: "Lost" },
   ]},
-  { name: "value", label: "Estimated Value ($)", type: "number" },
+  { name: "value", label: "Estimated Value (AED)", type: "number" },
   { name: "notes", label: "Notes", type: "textarea" },
 ];
 
@@ -120,7 +120,7 @@ export default function Leads() {
     )},
     { header: "Source", accessor: (r) => <span>{r.source || "—"}</span> },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
-    { header: "Value", accessor: (r) => <span className="font-medium">{r.value ? `$${r.value.toLocaleString()}` : "—"}</span> },
+    { header: "Value", accessor: (r) => <span className="font-medium">{r.value ? `AED ${r.value.toLocaleString()}` : "—"}</span> },
     ...(can("leads", "edit") ? [{ header: "Actions", accessor: (r: Lead) => (
       <div className="flex gap-1">
         <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setEditItem(r); setDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
@@ -155,7 +155,7 @@ export default function Leads() {
           <StatCard title="Total Leads" value={String(stats.total)} icon={Users} />
           <StatCard title="Qualified" value={String(stats.qualified)} icon={Target} />
           <StatCard title="Won" value={String(stats.won)} icon={TrendingUp} variant="success" />
-          <StatCard title="Total Value" value={`$${(stats.totalValue / 1000).toFixed(0)}K`} icon={Target} variant="accent" />
+          <StatCard title="Total Value" value={`AED ${(stats.totalValue / 1000).toFixed(0)}K`} icon={Target} variant="accent" />
         </div>
 
         {isLoading ? (
