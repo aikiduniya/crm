@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { DataTable, StatusBadge, type Column } from "@/components/DataTable";
-import { Users, UserPlus, Edit, Trash2, Upload, FileSpreadsheet, IdCard } from "lucide-react";
+import { Users, UserPlus, Edit, Trash2, Upload, FileSpreadsheet, IdCard, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +31,7 @@ type Employee = {
   join_date: string | null;
   notes: string | null;
   salary: number | null;
+  contract_url: string | null;
 };
 
 const employeeFields: FieldConfig[] = [
@@ -50,6 +51,7 @@ const employeeFields: FieldConfig[] = [
     { label: "Limited", value: "Limited" },
     { label: "Unlimited", value: "Unlimited" },
   ]},
+  { name: "contract_url", label: "Contract Document", type: "file", bucket: "employee-contracts", placeholder: "Upload contract (PDF, DOC, image)" },
   { name: "salary", label: "Salary (AED)", type: "number" },
   { name: "status", label: "Status", type: "select", options: [
     { label: "Active", value: "Active" },
@@ -222,6 +224,15 @@ export default function Employees() {
     { header: "Card Expiry", accessor: (r) => r.card_expiry ? new Date(r.card_expiry).toLocaleDateString() : "—" },
     { header: "Contract", accessor: (r) => <span className="text-xs">{r.contract_type || "—"}</span> },
     { header: "Salary", accessor: (r) => <span className="text-sm font-medium">{r.salary ? `AED ${Number(r.salary).toLocaleString()}` : "—"}</span> },
+    { header: "Contract", accessor: (r) => r.contract_url ? (
+      <Button variant="ghost" size="sm" className="h-7 px-2" onClick={async (e) => {
+        e.stopPropagation();
+        const { data } = await supabase.storage.from("employee-contracts").createSignedUrl(r.contract_url!, 60);
+        if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+      }}>
+        <FileText className="h-4 w-4 mr-1 text-primary" /><span className="text-xs">View</span>
+      </Button>
+    ) : <span className="text-xs text-muted-foreground">—</span> },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     ...(can("employees", "edit") || can("employees", "delete") ? [{ header: "Actions", accessor: (r: Employee) => (
       <div className="flex gap-1">
