@@ -202,6 +202,7 @@ export type Database = {
           card_number: string | null
           card_type: string | null
           contract_type: string | null
+          contract_url: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -225,6 +226,7 @@ export type Database = {
           card_number?: string | null
           card_type?: string | null
           contract_type?: string | null
+          contract_url?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -248,6 +250,7 @@ export type Database = {
           card_number?: string | null
           card_type?: string | null
           contract_type?: string | null
+          contract_url?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -329,6 +332,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          expense_date: string | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          project_id: string | null
+          receipt_url: string | null
+          reference_no: string | null
+          status: string
+          title: string
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          expense_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          project_id?: string | null
+          receipt_url?: string | null
+          reference_no?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          expense_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          project_id?: string | null
+          receipt_url?: string | null
+          reference_no?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: []
       }
       export_requests: {
         Row: {
