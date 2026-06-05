@@ -16,6 +16,7 @@ import Documents from "./pages/Documents.tsx";
 import Reports from "./pages/Reports.tsx";
 import Users from "./pages/Users.tsx";
 import Employees from "./pages/Employees.tsx";
+import Expenses from "./pages/Expenses.tsx";
 import Activity from "./pages/Activity.tsx";
 import Roles from "./pages/Roles.tsx";
 import Settings from "./pages/Settings.tsx";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute module="reports"><Reports /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute module="users"><Users /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute module="employees"><Employees /></ProtectedRoute>} />
+            <Route path="/expenses" element={<ProtectedRoute module="expenses"><Expenses /></ProtectedRoute>} />
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
             <Route path="/roles" element={<ProtectedRoute><Roles /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
