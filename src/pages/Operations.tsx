@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { DataTable, StatusBadge, type Column } from "@/components/DataTable";
-import { Wrench, Truck, HardHat, Users, Edit, Trash2, Plus } from "lucide-react";
+import { Wrench, Truck, HardHat, Users, Edit, Trash2, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -11,8 +11,10 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { CrudDialog, type FieldConfig } from "@/components/CrudDialog";
 import { DeleteDialog } from "@/components/DeleteDialog";
 import { useState } from "react";
+import { useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
+import * as XLSX from "xlsx";
 
 type Equipment = { id: string; name: string; type: string; quantity: number | null; status: string; condition: string | null; daily_rate: number | null; last_maintenance: string | null };
 type Labor = { id: string; worker_name: string; role: string; status: string; hourly_rate: number | null; hours_logged: number | null; phone: string | null };
@@ -55,6 +57,9 @@ export default function Operations() {
   const [lbDeleteOpen, setLbDeleteOpen] = useState(false);
   const [editLb, setEditLb] = useState<Labor | null>(null);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const eqFileRef = useRef<HTMLInputElement>(null);
+  const lbFileRef = useRef<HTMLInputElement>(null);
 
   const { data: equipment = [] } = useQuery({ queryKey: ["equipment"], queryFn: async () => { const { data } = await supabase.from("equipment").select("*").is("deleted_at", null).order("created_at", { ascending: false }); return (data || []) as Equipment[]; } });
   const { data: labor = [] } = useQuery({ queryKey: ["labor"], queryFn: async () => { const { data } = await supabase.from("labor").select("*").is("deleted_at", null).order("created_at", { ascending: false }); return (data || []) as Labor[]; } });
@@ -117,6 +122,82 @@ export default function Operations() {
     setSaving(false);
   };
 
+  const norm = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const handleEquipmentImport = async (file: File) => {
+    setImporting(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array", cellDates: true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
+      const map: Record<string, string> = {
+        name: "name", equipment: "name", equipmentname: "name", item: "name",
+        type: "type", category: "type",
+        quantity: "quantity", qty: "quantity",
+        status: "status", condition: "condition",
+        dailyrate: "daily_rate", rate: "daily_rate", price: "daily_rate",
+        lastmaintenance: "last_maintenance", maintenance: "last_maintenance",
+        nextmaintenance: "next_maintenance", notes: "notes", remarks: "notes",
+      };
+      const payload = rows.map((r) => {
+        const obj: Record<string, any> = { status: "Available", quantity: 1 };
+        Object.entries(r).forEach(([k, v]) => {
+          const t = map[norm(k)]; if (!t) return;
+          if (t === "quantity") obj[t] = parseInt(String(v)) || 1;
+          else if (t === "daily_rate") obj[t] = v === "" ? null : Number(String(v).replace(/[^0-9.\-]/g, "")) || null;
+          else if (t === "last_maintenance" || t === "next_maintenance") {
+            if (v instanceof Date) obj[t] = v.toISOString().slice(0, 10);
+            else if (v) { const d = new Date(String(v)); obj[t] = isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10); }
+            else obj[t] = null;
+          }
+          else obj[t] = v === "" ? null : String(v).trim();
+        });
+        return obj;
+      }).filter((r) => r.name && r.type);
+      if (!payload.length) { toast({ title: "No valid rows", description: "Need Name and Type columns", variant: "destructive" }); return; }
+      const { error } = await supabase.from("equipment").insert(payload as any);
+      if (error) throw error;
+      toast({ title: `Imported ${payload.length} equipment` });
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+    } catch (err: any) { toast({ title: "Import failed", description: err.message, variant: "destructive" }); }
+    setImporting(false);
+    if (eqFileRef.current) eqFileRef.current.value = "";
+  };
+
+  const handleLaborImport = async (file: File) => {
+    setImporting(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array", cellDates: true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
+      const map: Record<string, string> = {
+        name: "worker_name", workername: "worker_name", fullname: "worker_name", worker: "worker_name",
+        role: "role", jobtitle: "role", position: "role",
+        status: "status", hourlyrate: "hourly_rate", rate: "hourly_rate",
+        hours: "hours_logged", hourslogged: "hours_logged",
+        phone: "phone", mobile: "phone", notes: "notes",
+      };
+      const payload = rows.map((r) => {
+        const obj: Record<string, any> = { status: "Available" };
+        Object.entries(r).forEach(([k, v]) => {
+          const t = map[norm(k)]; if (!t) return;
+          if (t === "hourly_rate" || t === "hours_logged") obj[t] = v === "" ? null : Number(String(v).replace(/[^0-9.\-]/g, "")) || null;
+          else obj[t] = v === "" ? null : String(v).trim();
+        });
+        return obj;
+      }).filter((r) => r.worker_name && r.role);
+      if (!payload.length) { toast({ title: "No valid rows", description: "Need Name and Role columns", variant: "destructive" }); return; }
+      const { error } = await supabase.from("labor").insert(payload as any);
+      if (error) throw error;
+      toast({ title: `Imported ${payload.length} workers` });
+      queryClient.invalidateQueries({ queryKey: ["labor"] });
+    } catch (err: any) { toast({ title: "Import failed", description: err.message, variant: "destructive" }); }
+    setImporting(false);
+    if (lbFileRef.current) lbFileRef.current.value = "";
+  };
+
   const eqColumns: Column<Equipment>[] = [
     { header: "Equipment", accessor: (r) => (<div><p className="font-medium">{r.name}</p><p className="text-xs text-muted-foreground">{r.type}</p></div>) },
     { header: "Qty", accessor: (r) => <span className="font-medium">{r.quantity ?? 1}</span> },
@@ -161,11 +242,19 @@ export default function Operations() {
             <TabsTrigger value="labor"><HardHat className="h-4 w-4 mr-2" />Labor</TabsTrigger>
           </TabsList>
           <TabsContent value="equipment" className="mt-4">
-            {can("operations", "create") && <div className="flex justify-end mb-3"><Button className="gradient-primary" onClick={() => { setEditEq(null); setEqDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Equipment</Button></div>}
+            {can("operations", "create") && <div className="flex justify-end mb-3 gap-2">
+              <input ref={eqFileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleEquipmentImport(f); }} />
+              <Button variant="outline" disabled={importing} onClick={() => eqFileRef.current?.click()}><Upload className="h-4 w-4 mr-2" />{importing ? "Importing..." : "Import Excel/CSV"}</Button>
+              <Button className="gradient-primary" onClick={() => { setEditEq(null); setEqDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Equipment</Button>
+            </div>}
             <DataTable title="Equipment Inventory" columns={eqColumns} data={equipment} searchKeys={["name","type"]} searchPlaceholder="Search equipment..." filters={[{key:"status",label:"Status",options:[{label:"Available",value:"Available"},{label:"In Use",value:"In Use"},{label:"Maintenance",value:"Maintenance"}]}]} />
           </TabsContent>
           <TabsContent value="labor" className="mt-4">
-            {can("operations", "create") && <div className="flex justify-end mb-3"><Button className="gradient-primary" onClick={() => { setEditLb(null); setLbDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Worker</Button></div>}
+            {can("operations", "create") && <div className="flex justify-end mb-3 gap-2">
+              <input ref={lbFileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLaborImport(f); }} />
+              <Button variant="outline" disabled={importing} onClick={() => lbFileRef.current?.click()}><Upload className="h-4 w-4 mr-2" />{importing ? "Importing..." : "Import Excel/CSV"}</Button>
+              <Button className="gradient-primary" onClick={() => { setEditLb(null); setLbDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Add Worker</Button>
+            </div>}
             <DataTable title="Workforce" columns={lbColumns} data={labor} searchKeys={["worker_name","role"]} searchPlaceholder="Search workers..." filters={[{key:"status",label:"Status",options:[{label:"Available",value:"Available"},{label:"Active",value:"Active"},{label:"On Leave",value:"On Leave"}]}]} />
           </TabsContent>
         </Tabs>
