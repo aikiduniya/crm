@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { DataTable, StatusBadge, type Column } from "@/components/DataTable";
-import { Users, UserPlus, Edit, Trash2, Upload, FileSpreadsheet, IdCard } from "lucide-react";
+import { Users, UserPlus, Edit, Trash2, Upload, FileSpreadsheet, IdCard, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +31,7 @@ type Employee = {
   join_date: string | null;
   notes: string | null;
   salary: number | null;
+  contract_url: string | null;
 };
 
 const employeeFields: FieldConfig[] = [
@@ -50,6 +51,7 @@ const employeeFields: FieldConfig[] = [
     { label: "Limited", value: "Limited" },
     { label: "Unlimited", value: "Unlimited" },
   ]},
+  { name: "contract_url", label: "Contract Document", type: "file", bucket: "employee-contracts", placeholder: "Upload contract (PDF, DOC, image)" },
   { name: "salary", label: "Salary (AED)", type: "number" },
   { name: "status", label: "Status", type: "select", options: [
     { label: "Active", value: "Active" },
