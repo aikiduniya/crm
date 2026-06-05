@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 
-const MODULES = ["dashboard","leads","projects","clients","sales","operations","employees","financials","documents","reports","users"] as const;
+const MODULES = ["dashboard","leads","projects","clients","sales","operations","employees","financials","expenses","documents","reports","users"] as const;
 const ACTIONS = ["can_view","can_create","can_edit","can_delete"] as const;
 const ACTION_LABELS: Record<string, string> = { can_view: "View", can_create: "Create", can_edit: "Edit", can_delete: "Delete" };
 
