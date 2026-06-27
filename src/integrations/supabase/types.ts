@@ -454,9 +454,11 @@ export type Database = {
           invoice_number: string
           notes: string | null
           paid_date: string | null
+          payment_method: string | null
           project_id: string | null
           status: string
           updated_at: string
+          vat_percent: number | null
         }
         Insert: {
           amount?: number
@@ -470,9 +472,11 @@ export type Database = {
           invoice_number: string
           notes?: string | null
           paid_date?: string | null
+          payment_method?: string | null
           project_id?: string | null
           status?: string
           updated_at?: string
+          vat_percent?: number | null
         }
         Update: {
           amount?: number
@@ -486,9 +490,11 @@ export type Database = {
           invoice_number?: string
           notes?: string | null
           paid_date?: string | null
+          payment_method?: string | null
           project_id?: string | null
           status?: string
           updated_at?: string
+          vat_percent?: number | null
         }
         Relationships: [
           {

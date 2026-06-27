@@ -29,15 +29,25 @@ export function printInvoice(invoice: {
   invoice_number: string; amount: number; status: string;
   due_date?: string | null; paid_date?: string | null; notes?: string | null;
   client_name?: string; project_name?: string; created_at?: string;
+  client_email?: string | null; client_phone?: string | null; client_address?: string | null;
+  vat_percent?: number | null; payment_method?: string | null;
 }) {
   const fmt = (n: number) => n.toLocaleString("en-AE", { style: "currency", currency: "AED" });
   const issued = invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : new Date().toLocaleDateString();
+  const subtotal = invoice.amount;
+  const vatPct = invoice.vat_percent && invoice.vat_percent > 0 ? Number(invoice.vat_percent) : 0;
+  const vatAmt = (subtotal * vatPct) / 100;
+  const grandTotal = subtotal + vatAmt;
   const body = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
       <div>
         <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#64748b">Bill To</div>
         <div style="font-size:16px;font-weight:600;margin-top:4px">${invoice.client_name || "—"}</div>
-        <div style="font-size:13px;color:#475569;margin-top:2px">Project: ${invoice.project_name || "—"}</div>
+        ${invoice.client_address ? `<div style="font-size:12px;color:#475569;margin-top:2px">${invoice.client_address}</div>` : ""}
+        ${invoice.client_email ? `<div style="font-size:12px;color:#475569">${invoice.client_email}</div>` : ""}
+        ${invoice.client_phone ? `<div style="font-size:12px;color:#475569">${invoice.client_phone}</div>` : ""}
+        <div style="font-size:13px;color:#475569;margin-top:6px"><strong>Project:</strong> ${invoice.project_name || "—"}</div>
+        ${invoice.payment_method ? `<div style="font-size:13px;color:#475569"><strong>Payment Method:</strong> ${invoice.payment_method}</div>` : ""}
       </div>
       <div style="text-align:right">
         <h1 style="font-size:30px;margin:0;color:#0a1f5c;letter-spacing:-0.5px">INVOICE</h1>
@@ -54,15 +64,22 @@ export function printInvoice(invoice: {
       </tr></thead>
       <tbody><tr>
         <td style="padding:14px 12px;border-bottom:1px solid #e2e8f0">${invoice.notes || "Services rendered"}</td>
-        <td style="padding:14px 12px;border-bottom:1px solid #e2e8f0;text-align:right">${fmt(invoice.amount)}</td>
+        <td style="padding:14px 12px;border-bottom:1px solid #e2e8f0;text-align:right">${fmt(subtotal)}</td>
       </tr></tbody>
     </table>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <table style="min-width:280px;border-collapse:collapse;font-size:13px">
+        <tr><td style="padding:6px 12px;color:#475569">Subtotal</td><td style="padding:6px 12px;text-align:right">${fmt(subtotal)}</td></tr>
+        ${vatPct > 0 ? `<tr><td style="padding:6px 12px;color:#475569">VAT (${vatPct}%)</td><td style="padding:6px 12px;text-align:right">${fmt(vatAmt)}</td></tr>` : ""}
+        <tr><td style="padding:10px 12px;border-top:2px solid #0a1f5c;font-weight:700;color:#0a1f5c">Total</td><td style="padding:10px 12px;border-top:2px solid #0a1f5c;text-align:right;font-weight:700;color:#0a1f5c;font-size:16px">${fmt(grandTotal)}</td></tr>
+      </table>
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:2px solid #0a1f5c">
       <div style="font-size:13px;color:#475569">Status: <strong style="color:#0a1f5c">${invoice.status}</strong>${invoice.paid_date ? ` · Paid on ${invoice.paid_date}` : ""}</div>
-      <div style="font-size:22px;font-weight:700;color:#0a1f5c">Total: ${fmt(invoice.amount)}</div>
+      <div style="font-size:13px;color:#64748b">Thank you for your business</div>
     </div>
   `;
-  openBrandedPrintWindow({ title: invoice.invoice_number, bodyHTML: body });
+  openBrandedPrintWindow({ title: invoice.invoice_number, bodyHTML: body, watermark: true, stamp: true });
 }
 
 /** Print a branded report with a title and a generic data table (used for non-invoice exports). */
