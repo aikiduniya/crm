@@ -39,7 +39,7 @@ export default function Financials() {
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients", "for-invoice"],
-    queryFn: async () => { const { data } = await supabase.from("clients").select("id, name, email, phone, address").is("deleted_at", null).order("name"); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from("clients").select("id, company_name, contact_name, email, phone, address").is("deleted_at", null).order("company_name"); return data || []; },
   });
   const { data: projects = [] } = useQuery({
     queryKey: ["projects", "for-invoice"],
@@ -48,7 +48,7 @@ export default function Financials() {
 
   const invoiceFields: FieldConfig[] = [
     { name: "invoice_number", label: "Invoice Number", type: "text", required: true, placeholder: "INV-2025-001" },
-    { name: "client_id", label: "Bill To (Client)", type: "select", options: clients.map((c: any) => ({ label: c.name, value: c.id })) },
+    { name: "client_id", label: "Bill To (Client)", type: "select", options: clients.map((c: any) => ({ label: `${c.company_name}${c.contact_name ? ` — ${c.contact_name}` : ""}`, value: c.id })) },
     { name: "project_id", label: "Project", type: "select", options: projects.map((p: any) => ({ label: p.name, value: p.id })) },
     { name: "amount", label: "Amount (AED)", type: "number", required: true },
     { name: "vat_percent", label: "VAT % (optional — leave blank for no VAT)", type: "number", placeholder: "e.g. 5" },
@@ -185,7 +185,7 @@ export default function Financials() {
                   due_date: viewItem.due_date,
                   paid_date: viewItem.paid_date,
                   notes: viewItem.notes,
-                  client_name: client?.name,
+                  client_name: client ? `${client.company_name}${client.contact_name ? ` (${client.contact_name})` : ""}` : undefined,
                   client_email: client?.email,
                   client_phone: client?.phone,
                   client_address: client?.address,
