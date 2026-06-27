@@ -18,19 +18,7 @@ import { downloadCSV, printInvoice } from "@/lib/exportUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
-type Invoice = { id: string; invoice_number: string; amount: number; status: string; due_date: string | null; paid_date: string | null; notes: string | null; client_id: string | null; project_id: string | null };
-
-const invoiceFields: FieldConfig[] = [
-  { name: "invoice_number", label: "Invoice Number", type: "text", required: true, placeholder: "INV-2025-001" },
-  { name: "amount", label: "Amount (AED)", type: "number", required: true },
-  { name: "status", label: "Status", type: "select", options: [
-    { label: "Draft", value: "Draft" }, { label: "Pending", value: "Pending" },
-    { label: "Paid", value: "Paid" }, { label: "Overdue", value: "Overdue" },
-  ]},
-  { name: "due_date", label: "Due Date", type: "date" },
-  { name: "paid_date", label: "Paid Date", type: "date" },
-  { name: "notes", label: "Notes", type: "textarea" },
-];
+type Invoice = { id: string; invoice_number: string; amount: number; status: string; due_date: string | null; paid_date: string | null; notes: string | null; client_id: string | null; project_id: string | null; vat_percent: number | null; payment_method: string | null };
 
 export default function Financials() {
   const { user } = useAuth();
@@ -48,6 +36,34 @@ export default function Financials() {
     queryKey: ["invoices"],
     queryFn: async () => { const { data, error } = await supabase.from("invoices").select("*").is("deleted_at", null).order("created_at", { ascending: false }); if (error) throw error; return data as Invoice[]; },
   });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients", "for-invoice"],
+    queryFn: async () => { const { data } = await supabase.from("clients").select("id, name, email, phone, address").is("deleted_at", null).order("name"); return data || []; },
+  });
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects", "for-invoice"],
+    queryFn: async () => { const { data } = await supabase.from("projects").select("id, name, client_id").is("deleted_at", null).order("name"); return data || []; },
+  });
+
+  const invoiceFields: FieldConfig[] = [
+    { name: "invoice_number", label: "Invoice Number", type: "text", required: true, placeholder: "INV-2025-001" },
+    { name: "client_id", label: "Bill To (Client)", type: "select", options: clients.map((c: any) => ({ label: c.name, value: c.id })) },
+    { name: "project_id", label: "Project", type: "select", options: projects.map((p: any) => ({ label: p.name, value: p.id })) },
+    { name: "amount", label: "Amount (AED)", type: "number", required: true },
+    { name: "vat_percent", label: "VAT % (optional — leave blank for no VAT)", type: "number", placeholder: "e.g. 5" },
+    { name: "payment_method", label: "Payment Method", type: "select", options: [
+      { label: "Cash", value: "Cash" }, { label: "Online", value: "Online" },
+      { label: "Bank Transfer", value: "Bank Transfer" }, { label: "Cheque", value: "Cheque" },
+    ]},
+    { name: "status", label: "Status", type: "select", options: [
+      { label: "Draft", value: "Draft" }, { label: "Pending", value: "Pending" },
+      { label: "Paid", value: "Paid" }, { label: "Overdue", value: "Overdue" },
+    ]},
+    { name: "due_date", label: "Due Date", type: "date" },
+    { name: "paid_date", label: "Paid Date", type: "date" },
+    { name: "notes", label: "Notes / Description", type: "textarea" },
+  ];
 
   const handleSave = async (formData: Record<string, any>) => {
     setSaving(true);
@@ -145,6 +161,8 @@ export default function Financials() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Due Date</p><p className="font-medium">{viewItem.due_date || "—"}</p></div>
                 <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Paid Date</p><p className="font-medium">{viewItem.paid_date || "—"}</p></div>
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">VAT %</p><p className="font-medium">{viewItem.vat_percent ?? "—"}</p></div>
+                <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Payment Method</p><p className="font-medium">{viewItem.payment_method || "—"}</p></div>
               </div>
               {viewItem.notes && (
                 <div><p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Notes</p><p className="text-sm">{viewItem.notes}</p></div>
@@ -156,14 +174,26 @@ export default function Financials() {
             <ExportButton
               module="financials"
               label="Download / Print"
-              onExport={() => viewItem && printInvoice({
-                invoice_number: viewItem.invoice_number,
-                amount: viewItem.amount,
-                status: viewItem.status,
-                due_date: viewItem.due_date,
-                paid_date: viewItem.paid_date,
-                notes: viewItem.notes,
-              })}
+              onExport={() => {
+                if (!viewItem) return;
+                const client: any = clients.find((c: any) => c.id === viewItem.client_id);
+                const project: any = projects.find((p: any) => p.id === viewItem.project_id);
+                printInvoice({
+                  invoice_number: viewItem.invoice_number,
+                  amount: viewItem.amount,
+                  status: viewItem.status,
+                  due_date: viewItem.due_date,
+                  paid_date: viewItem.paid_date,
+                  notes: viewItem.notes,
+                  client_name: client?.name,
+                  client_email: client?.email,
+                  client_phone: client?.phone,
+                  client_address: client?.address,
+                  project_name: project?.name,
+                  vat_percent: viewItem.vat_percent,
+                  payment_method: viewItem.payment_method,
+                });
+              }}
             />
           </DialogFooter>
         </DialogContent>
