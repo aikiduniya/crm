@@ -97,7 +97,7 @@ export async function openBrandedPrintWindow(opts: {
   stamp?: boolean;
 }) {
   // Open immediately to keep the user-gesture for popup blockers, then fill in once images are ready.
-  const w = window.open("", "_blank", "width=900,height=1000");
+  const w = window.open("", "_blank", "width=794,height=1123");
   if (!w) return;
   w.document.write(`<!doctype html><html><head><title>${opts.title}</title></head><body style="font-family:sans-serif;padding:24px;color:#64748b">Preparing document…</body></html>`);
 
