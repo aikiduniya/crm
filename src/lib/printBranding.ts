@@ -41,7 +41,7 @@ export const brandedPrintCSS = `
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#0f172a;background:#fff}
-  .page{min-height:297mm;display:flex;flex-direction:column;padding:15mm 20mm 40mm;position:relative;overflow:hidden}
+  .page{min-height:297mm;display:flex;flex-direction:column;padding:15mm 20mm 0;position:relative;overflow:hidden}
   .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;height:520px;opacity:0.07;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:contain;background-position:center}
   .page > *:not(.watermark){position:relative;z-index:1}
   .letterhead{display:flex;align-items:center;gap:18px;padding-bottom:14px;border-bottom:2px solid #c81e1e}
@@ -49,14 +49,16 @@ export const brandedPrintCSS = `
   .letterhead .titles{flex:1;text-align:center}
   .letterhead .ar{font-size:20px;color:#0a1f5c;font-weight:700;letter-spacing:0.5px;direction:rtl}
   .letterhead .en{font-size:22px;color:#c81e1e;font-weight:800;letter-spacing:0.5px;margin-top:2px}
-  .content{flex:1;padding:28px 0}
+  .content{flex:1;padding:28px 0 12mm}
   .stamp-area{display:flex;justify-content:flex-end;margin-top:28px;padding-right:16px}
   .stamp-area img{height:130px;width:auto;opacity:0.92;mix-blend-mode:multiply}
-  .footer-band{position:fixed;left:0;right:0;bottom:0;width:100%;border-top:2px solid #c81e1e}
+  .footer-band{flex-shrink:0;margin:0 -20mm;border-top:2px solid #c81e1e}
   .footer-band .bar{background:#0a1f5c;color:#fff;text-align:center;font-size:12px;line-height:1.6;padding:10px 16px}
   @media print{
-    .page{padding:12mm 18mm 38mm}
-    .footer-band{position:fixed}
+    html,body{width:210mm;min-height:297mm}
+    .page{min-height:297mm;padding:12mm 18mm 0}
+    .content{padding:24px 0 8mm}
+    .footer-band{position:static;margin:0 -18mm}
     .watermark{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .footer-band .bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}
