@@ -59,8 +59,8 @@ export function printInvoice(invoice: {
     </div>
     <table style="width:100%;border-collapse:collapse;margin-top:8px">
       <thead><tr>
-        <th style="background:#0a1f5c;color:#fff;text-align:left;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px">Description</th>
-        <th style="background:#0a1f5c;color:#fff;text-align:right;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px">Amount</th>
+        <th style="color:#0a1f5c;text-align:left;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #0a1f5c">Description</th>
+        <th style="color:#0a1f5c;text-align:right;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #0a1f5c">Amount</th>
       </tr></thead>
       <tbody><tr>
         <td style="padding:14px 12px;border-bottom:1px solid #e2e8f0">${invoice.notes || "Services rendered"}</td>
@@ -90,7 +90,7 @@ export function printBrandedTable(opts: {
   rows: Record<string, any>[];
 }) {
   const head = opts.columns.map(c =>
-    `<th style="background:#0a1f5c;color:#fff;text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px">${c}</th>`
+    `<th style="color:#0a1f5c;text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #0a1f5c">${c}</th>`
   ).join("");
   const body = opts.rows.map(r =>
     `<tr>${opts.columns.map(c => `<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px">${r[c] ?? ""}</td>`).join("")}</tr>`
