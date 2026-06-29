@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
-import logoAsset from "@/assets/company-logo.png.asset.json";
-const companyLogo = logoAsset.url;
+import companyLogo from "@/assets/branding/company-logo.png";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
