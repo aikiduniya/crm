@@ -59,8 +59,8 @@ export function printInvoice(invoice: {
     </div>
     <table style="width:100%;border-collapse:collapse;margin-top:8px">
       <thead><tr>
-        <th style="color:#0a1f5c;text-align:left;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #0a1f5c">Description</th>
-        <th style="color:#0a1f5c;text-align:right;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #0a1f5c">Amount</th>
+        <th style="background:#0a1f5c;color:#fff;text-align:left;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px">Description</th>
+        <th style="background:#0a1f5c;color:#fff;text-align:right;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px">Amount</th>
       </tr></thead>
       <tbody><tr>
         <td style="padding:14px 12px;border-bottom:1px solid #e2e8f0">${invoice.notes || "Services rendered"}</td>
