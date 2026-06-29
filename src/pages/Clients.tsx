@@ -89,7 +89,7 @@ export default function Clients() {
         {r.phone && <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{r.phone}</div>}
       </div>
     )},
-    { header: "Value", accessor: (r) => <span className="font-medium">{r.total_value ? `$${(r.total_value / 1000).toFixed(0)}K` : "—"}</span> },
+    { header: "Value", accessor: (r) => <span className="font-medium">{r.total_value ? `AED ${(r.total_value / 1000).toFixed(0)}K` : "—"}</span> },
     { header: "Rating", accessor: (r) => (
       <div className="flex gap-0.5">{Array.from({ length: 5 }, (_, i) => <Star key={i} className={`h-3.5 w-3.5 ${i < (r.satisfaction || 0) ? "text-accent fill-accent" : "text-muted"}`} />)}</div>
     )},

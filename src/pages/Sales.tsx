@@ -81,7 +81,7 @@ export default function Sales() {
   const columns: Column<Deal>[] = [
     { header: "Deal", accessor: (r) => (<div><p className="font-medium">{r.title}</p><p className="text-xs text-muted-foreground">{r.client_name}</p></div>) },
     { header: "Stage", accessor: (r) => <StatusBadge status={r.stage} /> },
-    { header: "Value", accessor: (r) => <span className="font-medium">{r.value ? `$${(r.value / 1000).toFixed(0)}K` : "—"}</span> },
+    { header: "Value", accessor: (r) => <span className="font-medium">{r.value ? `AED ${(r.value / 1000).toFixed(0)}K` : "—"}</span> },
     { header: "Probability", accessor: (r) => (
       <div className="flex items-center gap-2">
         <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full" style={{ width: `${r.probability || 0}%` }} /></div>

@@ -142,7 +142,7 @@ export default function Reports() {
 
           <TabsContent value="revenue" className="mt-4">
             <Card className="p-5">
-              <h3 className="font-semibold mb-4">Monthly Paid Revenue ($K)</h3>
+              <h3 className="font-semibold mb-4">Monthly Paid Revenue (AED K)</h3>
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={monthlyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" vertical={false} />
