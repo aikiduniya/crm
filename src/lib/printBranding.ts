@@ -51,9 +51,8 @@ export const brandedPrintCSS = `
   .content{flex:1;padding:28px 0}
   .stamp-area{display:flex;justify-content:flex-end;margin-top:28px;padding-right:16px}
   .stamp-area img{height:130px;width:auto;opacity:0.92;mix-blend-mode:multiply}
-  .footer-band{position:fixed;left:0;right:0;bottom:0;width:100%}
-  .footer-band .stripe{height:6px;background:#c81e1e}
-  .footer-band .bar{background:#0a1f5c;color:#fff;text-align:center;font-size:12px;line-height:1.6;padding:10px 16px}
+  .footer-band{position:fixed;left:0;right:0;bottom:0;width:100%;border-top:2px solid #0a1f5c}
+  .footer-band .bar{color:#0f172a;text-align:center;font-size:12px;line-height:1.6;padding:10px 16px}
   @media print{
     .page{padding:16px 28px 130px}
     .footer-band{position:fixed}
@@ -78,10 +77,9 @@ export function brandedFooterHTML() {
   const c = COMPANY_CONTACT;
   return `
     <div class="footer-band">
-      <div class="stripe"></div>
       <div class="bar">
         <div>${c.pobox} ${c.tel} ${c.fax}</div>
-        <div>${c.mobile} ${c.email}</div>
+        <div>${c.mobile} ${c.email.comemail}</div>
       </div>
     </div>
   `;
