@@ -7,7 +7,7 @@ export const COMPANY_CONTACT = {
   pobox: "P.O Box: 24966 Algarhoud Dubai U.A.E",
   tel: "Tel: 04-2347044",
   fax: "Fax: 04-2347055",
-  mobile: "Mobile No. +971 54 292 0813",
+  mobile: "Mobile No. +971509277786 ,  +971 54 292 0813",
   email: "Email: naeemghouri786@gmail.com",
 };
 
