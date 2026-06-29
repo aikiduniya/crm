@@ -7,7 +7,7 @@ export const COMPANY_CONTACT = {
   pobox: "P.O Box: 24966 Algarhoud Dubai U.A.E",
   tel: "Tel: 04-2347044",
   fax: "Fax: 04-2347055",
-  mobile: "Mobile No. +971 54 292 0813",
+  mobile: "Mobile No. +971509277786 ,  +971 54 292 0813",
   email: "Email: naeemghouri786@gmail.com",
 };
 
@@ -37,10 +37,11 @@ async function toDataUrl(url: string): Promise<string> {
 }
 
 export const brandedPrintCSS = `
+  @page{size:A4;margin:0}
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#0f172a;background:#fff}
-  .page{min-height:100vh;display:flex;flex-direction:column;padding:24px 40px 140px;position:relative;overflow:hidden}
+  .page{min-height:297mm;display:flex;flex-direction:column;padding:15mm 20mm 40mm;position:relative;overflow:hidden}
   .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;height:520px;opacity:0.07;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:contain;background-position:center}
   .page > *:not(.watermark){position:relative;z-index:1}
   .letterhead{display:flex;align-items:center;gap:18px;padding-bottom:14px;border-bottom:2px solid #c81e1e}
@@ -54,7 +55,7 @@ export const brandedPrintCSS = `
   .footer-band{position:fixed;left:0;right:0;bottom:0;width:100%;border-top:2px solid #c81e1e}
   .footer-band .bar{background:#0a1f5c;color:#fff;text-align:center;font-size:12px;line-height:1.6;padding:10px 16px}
   @media print{
-    .page{padding:16px 28px 130px}
+    .page{padding:12mm 18mm 38mm}
     .footer-band{position:fixed}
     .watermark{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -96,7 +97,7 @@ export async function openBrandedPrintWindow(opts: {
   stamp?: boolean;
 }) {
   // Open immediately to keep the user-gesture for popup blockers, then fill in once images are ready.
-  const w = window.open("", "_blank", "width=900,height=1000");
+  const w = window.open("", "_blank", "width=794,height=1123");
   if (!w) return;
   w.document.write(`<!doctype html><html><head><title>${opts.title}</title></head><body style="font-family:sans-serif;padding:24px;color:#64748b">Preparing document…</body></html>`);
 
