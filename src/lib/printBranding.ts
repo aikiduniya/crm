@@ -49,7 +49,7 @@ export const brandedPrintCSS = `
   .letterhead .titles{flex:1;text-align:center}
   .letterhead .ar{font-size:20px;color:#0a1f5c;font-weight:700;letter-spacing:0.5px;direction:rtl}
   .letterhead .en{font-size:22px;color:#c81e1e;font-weight:800;letter-spacing:0.5px;margin-top:2px}
-  .content{flex:1;padding:28px 0 12mm}
+  .content{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0}
   .stamp-area{display:flex;justify-content:flex-end;margin-top:28px;padding-right:16px}
   .stamp-area img{height:130px;width:auto;opacity:0.92;mix-blend-mode:multiply}
   .footer-band{flex-shrink:0;margin:0 -20mm;border-top:2px solid #c81e1e}
@@ -57,7 +57,7 @@ export const brandedPrintCSS = `
   @media print{
     html,body{width:210mm;min-height:297mm}
     .page{min-height:297mm;padding:12mm 18mm 0}
-    .content{padding:24px 0 8mm}
+    .content{padding:0;display:flex;flex-direction:column;justify-content:center}
     .footer-band{position:static;margin:0 -18mm}
     .watermark{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
