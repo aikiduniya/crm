@@ -3,7 +3,8 @@ import {
   Wrench, DollarSign, FileText, BarChart3, HardHat, Settings, Shield, Activity, KeyRound, Trash2, Download, BadgeCheck, Receipt,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import companyLogo from "@/assets/company-logo.jpeg";
+import logoAsset from "@/assets/company-logo.png.asset.json";
+const companyLogo = logoAsset.url;
 import { useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";

@@ -1,4 +1,4 @@
-import logoAsset from "@/assets/company-logo.jpeg.asset.json";
+import logoAsset from "@/assets/company-logo.png.asset.json";
 import stampAsset from "@/assets/company-stamp.jpeg.asset.json";
 
 export const COMPANY_NAME = "CITY HOMES TECHNICAL SERVICES (L.L.C)";
