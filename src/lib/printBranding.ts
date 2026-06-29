@@ -79,7 +79,7 @@ export function brandedFooterHTML() {
     <div class="footer-band">
       <div class="bar">
         <div>${c.pobox} ${c.tel} ${c.fax}</div>
-        <div>${c.mobile} ${c.email.comemail}</div>
+        <div>${c.mobile} ${c.email}</div>
       </div>
     </div>
   `;
