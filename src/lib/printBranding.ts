@@ -1,5 +1,5 @@
-import logoAsset from "@/assets/company-logo.png.asset.json";
-import stampAsset from "@/assets/company-stamp.jpeg.asset.json";
+import companyLogoUrl from "@/assets/branding/company-logo.png";
+import companyStampUrl from "@/assets/branding/company-stamp.jpeg";
 
 export const COMPANY_NAME = "CITY HOMES TECHNICAL SERVICES (L.L.C)";
 export const COMPANY_NAME_AR = "سيتي هومس للخدمات الفنية (ش.ذ.م.م)";
@@ -12,9 +12,9 @@ export const COMPANY_CONTACT = {
 };
 
 export const COMPANY_LOGO_URL =
-  typeof window !== "undefined" ? window.location.origin + logoAsset.url : logoAsset.url;
+  typeof window !== "undefined" ? new URL(companyLogoUrl, window.location.origin).href : companyLogoUrl;
 export const COMPANY_STAMP_URL =
-  typeof window !== "undefined" ? window.location.origin + stampAsset.url : stampAsset.url;
+  typeof window !== "undefined" ? new URL(companyStampUrl, window.location.origin).href : companyStampUrl;
 
 // Cache for data-URL versions of brand images so the print window never shows a broken image.
 const dataUrlCache: Record<string, string> = {};
