@@ -106,7 +106,7 @@ export async function openBrandedPrintWindow(opts: {
   ]);
 
   const watermarkHTML = opts.watermark
-    ? `<div class="watermark" style="background-image:url('${stampData}')"></div>`
+    ? `<div class="watermark" style="background-image:url('${logoData}')"></div>`
     : "";
   const stampHTML = opts.stamp
     ? `<div class="stamp-area"><img src="${stampData}" alt="Company Stamp" /></div>`
