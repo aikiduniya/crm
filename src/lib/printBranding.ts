@@ -7,7 +7,7 @@ export const COMPANY_CONTACT = {
   pobox: "P.O Box: 24966 Algarhoud Dubai U.A.E",
   tel: "Tel: 04-2347044",
   fax: "Fax: 04-2347055",
-  mobile: "Mobile No. 050-9277786 , 055-1814864",
+  mobile: "Mobile No. +971 54 292 0813",
   email: "Email: naeemghouri786@gmail.com",
 };
 
@@ -41,7 +41,7 @@ export const brandedPrintCSS = `
   html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#0f172a;background:#fff}
   .page{min-height:100vh;display:flex;flex-direction:column;padding:24px 40px 140px;position:relative;overflow:hidden}
-  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-20deg);width:520px;height:520px;opacity:0.07;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:contain;background-position:center}
+  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;height:520px;opacity:0.07;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:contain;background-position:center}
   .page > *:not(.watermark){position:relative;z-index:1}
   .letterhead{display:flex;align-items:center;gap:18px;padding-bottom:14px;border-bottom:2px solid #c81e1e}
   .letterhead img{height:72px;width:auto;object-fit:contain}
