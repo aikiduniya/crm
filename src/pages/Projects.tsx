@@ -60,7 +60,7 @@ function ProjectCard({ project, canEdit, canDelete, onEdit, onDelete }: { projec
           <Progress value={project.progress || 0} className="h-1.5" />
         </div>
         <div className="grid grid-cols-2 gap-3 pt-2 border-t">
-          <div className="flex items-center gap-1.5 text-xs"><DollarSign className="h-3 w-3 text-muted-foreground" /><span className="font-medium">${((project.budget || 0) / 1000).toFixed(0)}K</span></div>
+          <div className="flex items-center gap-1.5 text-xs"><DollarSign className="h-3 w-3 text-muted-foreground" /><span className="font-medium">AED {((project.budget || 0) / 1000).toFixed(0)}K</span></div>
           {project.start_date && <div className="flex items-center gap-1.5 text-xs"><Calendar className="h-3 w-3 text-muted-foreground" /><span>{project.start_date}</span></div>}
         </div>
       </div>

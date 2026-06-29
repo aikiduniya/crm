@@ -214,7 +214,7 @@ export default function Operations() {
   const lbColumns: Column<Labor>[] = [
     { header: "Name", accessor: (r) => (<div><p className="font-medium">{r.worker_name}</p><p className="text-xs text-muted-foreground">{r.role}</p></div>) },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
-    { header: "Rate", accessor: (r) => <span className="font-medium">{r.hourly_rate ? `$${r.hourly_rate}/hr` : "—"}</span> },
+    { header: "Rate", accessor: (r) => <span className="font-medium">{r.hourly_rate ? `AED ${r.hourly_rate}/hr` : "—"}</span> },
     { header: "Hours", accessor: (r) => <span>{r.hours_logged || 0}h</span> },
     ...(can("operations", "edit") ? [{ header: "Actions", accessor: (r: Labor) => (
       <div className="flex gap-1">
