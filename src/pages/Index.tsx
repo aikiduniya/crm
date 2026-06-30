@@ -5,25 +5,12 @@ import { Users, FolderKanban, DollarSign, TrendingUp, HardHat, Clock, CheckCircl
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-
-const revenueData = [
-  { month: "Jan", revenue: 420000, target: 400000 },
-  { month: "Feb", revenue: 380000, target: 420000 },
-  { month: "Mar", revenue: 510000, target: 450000 },
-  { month: "Apr", revenue: 470000, target: 460000 },
-  { month: "May", revenue: 530000, target: 480000 },
-  { month: "Jun", revenue: 620000, target: 500000 },
-];
-
-const projectStatusData = [
-  { name: "Active", value: 12, color: "hsl(213, 60%, 42%)" },
-  { name: "Completed", value: 8, color: "hsl(152, 60%, 40%)" },
-  { name: "On Hold", value: 3, color: "hsl(38, 92%, 50%)" },
-  { name: "Delayed", value: 2, color: "hsl(0, 72%, 51%)" },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface RecentProject {
-  id: number;
+  id: string;
   name: string;
   client: string;
   status: string;
@@ -31,13 +18,21 @@ interface RecentProject {
   value: string;
 }
 
-const recentProjects: RecentProject[] = [
-  { id: 1, name: "Downtown Office Tower", client: "Metro Corp", status: "In Progress", progress: 65, value: "AED 2.4M" },
-  { id: 2, name: "Harbor Bridge Repair", client: "City Council", status: "In Progress", progress: 42, value: "AED 890K" },
-  { id: 3, name: "Riverside Apartments", client: "Prime Realty", status: "Pending", progress: 10, value: "AED 5.1M" },
-  { id: 4, name: "Industrial Warehouse", client: "LogiCo", status: "Completed", progress: 100, value: "AED 1.2M" },
-  { id: 5, name: "School Renovation", client: "Education Dept", status: "In Progress", progress: 78, value: "AED 650K" },
-];
+const STATUS_COLORS: Record<string, string> = {
+  Active: "hsl(213, 60%, 42%)",
+  "In Progress": "hsl(213, 60%, 42%)",
+  Completed: "hsl(152, 60%, 40%)",
+  "On Hold": "hsl(38, 92%, 50%)",
+  Pending: "hsl(38, 92%, 50%)",
+  Delayed: "hsl(0, 72%, 51%)",
+  Cancelled: "hsl(0, 72%, 51%)",
+};
+
+const formatAED = (n: number) => {
+  if (n >= 1_000_000) return `AED ${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `AED ${(n / 1_000).toFixed(0)}K`;
+  return `AED ${n.toLocaleString()}`;
+};
 
 const projectColumns: Column<RecentProject>[] = [
   { header: "Project", accessor: (r) => <span className="font-medium">{r.name}</span> },
@@ -56,19 +51,108 @@ const projectColumns: Column<RecentProject>[] = [
 ];
 
 export default function Index() {
+  const { profile } = useAuth();
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ["dashboard", "projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, name, status, budget, progress, client_id, created_at, clients(company_name)")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: leads = [] } = useQuery({
+    queryKey: ["dashboard", "leads"],
+    queryFn: async () => {
+      const { data } = await supabase.from("leads").select("id, status, value").is("deleted_at", null);
+      return data || [];
+    },
+  });
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ["dashboard", "invoices"],
+    queryFn: async () => {
+      const { data } = await supabase.from("invoices").select("amount, status, paid_date, created_at").is("deleted_at", null);
+      return data || [];
+    },
+  });
+
+  const { data: deals = [] } = useQuery({
+    queryKey: ["dashboard", "deals"],
+    queryFn: async () => {
+      const { data } = await supabase.from("sales_deals").select("stage").is("deleted_at", null);
+      return data || [];
+    },
+  });
+
+  // Stat cards
+  const activeProjects = projects.filter((p: any) => p.status === "Active" || p.status === "In Progress").length;
+  const totalRevenue = invoices.filter((i: any) => i.status === "Paid").reduce((s: number, i: any) => s + Number(i.amount || 0), 0);
+  const openLeads = leads.filter((l: any) => l.status !== "Won" && l.status !== "Lost" && l.status !== "Closed").length;
+  const wonDeals = deals.filter((d: any) => d.stage === "Won" || d.stage === "Closed Won").length;
+  const lostDeals = deals.filter((d: any) => d.stage === "Lost" || d.stage === "Closed Lost").length;
+  const decided = wonDeals + lostDeals;
+  const winRate = decided > 0 ? Math.round((wonDeals / decided) * 100) : 0;
+
+  // Revenue chart - last 6 months from paid invoices
+  const revenueData = (() => {
+    const months: { key: string; month: string; revenue: number; target: number }[] = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      months.push({ key, month: d.toLocaleString("en", { month: "short" }), revenue: 0, target: 0 });
+    }
+    invoices.forEach((inv: any) => {
+      if (inv.status !== "Paid") return;
+      const dateStr = inv.paid_date || inv.created_at;
+      if (!dateStr) return;
+      const d = new Date(dateStr);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const m = months.find(x => x.key === key);
+      if (m) m.revenue += Number(inv.amount || 0);
+    });
+    const avg = months.reduce((s, m) => s + m.revenue, 0) / 6 || 0;
+    months.forEach(m => { m.target = Math.round(avg * 1.1); });
+    return months;
+  })();
+
+  // Project status pie
+  const projectStatusData = (() => {
+    const counts: Record<string, number> = {};
+    projects.forEach((p: any) => { counts[p.status || "Unknown"] = (counts[p.status || "Unknown"] || 0) + 1; });
+    return Object.entries(counts).map(([name, value]) => ({ name, value, color: STATUS_COLORS[name] || "hsl(215, 14%, 50%)" }));
+  })();
+
+  const recentProjects: RecentProject[] = projects.slice(0, 5).map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    client: p.clients?.company_name || "—",
+    status: p.status || "—",
+    progress: p.progress || 0,
+    value: formatAED(Number(p.budget || 0)),
+  }));
+
+  const firstName = profile?.full_name?.split(" ")[0] || "there";
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground text-sm mt-1">Welcome back, John. Here's your construction overview.</p>
+          <p className="text-muted-foreground text-sm mt-1">Welcome back, {firstName}. Here's your construction overview.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Active Projects" value="12" change="+2 this month" changeType="positive" icon={FolderKanban} variant="primary" />
-          <StatCard title="Total Revenue" value="AED 2.93M" change="+18.2% vs last quarter" changeType="positive" icon={DollarSign} variant="accent" />
-          <StatCard title="Open Leads" value="47" change="+12 new this week" changeType="positive" icon={Users} />
-          <StatCard title="Win Rate" value="68%" change="+5% vs last month" changeType="positive" icon={TrendingUp} variant="success" />
+          <StatCard title="Active Projects" value={String(activeProjects)} icon={FolderKanban} variant="primary" />
+          <StatCard title="Total Revenue" value={formatAED(totalRevenue)} icon={DollarSign} variant="accent" />
+          <StatCard title="Open Leads" value={String(openLeads)} icon={Users} />
+          <StatCard title="Win Rate" value={`${winRate}%`} icon={TrendingUp} variant="success" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -88,6 +172,9 @@ export default function Index() {
 
           <Card className="p-5 animate-fade-in">
             <h3 className="font-semibold mb-4">Project Status</h3>
+            {projectStatusData.length === 0 ? (
+              <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">No projects yet</div>
+            ) : (<>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={projectStatusData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" paddingAngle={3}>
@@ -107,6 +194,7 @@ export default function Index() {
                 </div>
               ))}
             </div>
+            </>)}
           </Card>
         </div>
 
@@ -118,10 +206,10 @@ export default function Index() {
             <h3 className="font-semibold mb-4">Quick Stats</h3>
             <div className="space-y-4">
               {[
-                { icon: HardHat, label: "Workers On-Site", value: "142", color: "text-primary" },
-                { icon: Clock, label: "Hours Logged Today", value: "1,284", color: "text-accent" },
-                { icon: CheckCircle2, label: "Tasks Completed", value: "38", color: "text-success" },
-                { icon: AlertTriangle, label: "Open Issues", value: "7", color: "text-destructive" },
+                { icon: HardHat, label: "Total Projects", value: String(projects.length), color: "text-primary" },
+                { icon: Clock, label: "Pending Invoices", value: String(invoices.filter((i: any) => i.status === "Pending").length), color: "text-accent" },
+                { icon: CheckCircle2, label: "Paid Invoices", value: String(invoices.filter((i: any) => i.status === "Paid").length), color: "text-success" },
+                { icon: AlertTriangle, label: "Overdue Invoices", value: String(invoices.filter((i: any) => i.status === "Overdue").length), color: "text-destructive" },
               ].map((s) => (
                 <div key={s.label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                   <s.icon className={`h-4 w-4 ${s.color}`} />
